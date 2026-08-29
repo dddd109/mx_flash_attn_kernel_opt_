@@ -142,8 +142,9 @@ mcProfiler perf_exec \
 - [x] Initialize git repository
 - [x] Create skill file
 - [x] Create benchmark script
-- [ ] Create profile script (done)
-- [ ] Run baseline profile on GPU (needs模力方舟)
+- [x] Create profile script
+- [x] Document MetaX C500 software stack
+- [ ] Run baseline profile on GPU (needs 模力方舟 platform)
 - [ ] Implement first optimization
 - [ ] Verify correctness
 - [ ] Submit to OJ if improvement significant
