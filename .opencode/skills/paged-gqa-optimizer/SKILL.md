@@ -43,25 +43,17 @@ mcProfiler perf_exec \
 
 ## Identified Optimization Points
 
-### 1. Dot Product Reduction - Warp-level Reduce (HIGH PRIORITY)
+### 1. Dot Product Reduction - Warp-level Reduce (REQUIRES ANALYSIS)
 **CUDA kernel lines 214-218:**
 ```cuda
 for (int lane = 0; lane < 16; ++lane) {
   dot += s.dot[t][g][lane];
 }
 ```
-- **Issue**: Reads from shared memory 16 times for simple reduction
-- **Try**: Use warp-level shuffle reduction before syncthreads
-  ```cuda
-  // Use __shfl_xor_sync to reduce within warp
-  float dot = s.dot[t][g][dot_lane];
-  dot += __shfl_xor_sync(0xffffffff, dot, 16);
-  dot += __shfl_xor_sync(0xffffffff, dot, 8);
-  dot += __shfl_xor_sync(0xffffffff, dot, 4);
-  dot += __shfl_xor_sync(0xffffffff, dot, 2);
-  dot += __shfl_xor_sync(0xffffffff, dot, 1);
-  ```
-- **Expected gain**: ~30-50% faster reduction phase
+- **Analysis**: `tid < Group` means threads 0,1,2,3 (for Group=4) participate
+- **Problem**: These threads have different g values (g=tid), so they CANNOT directly use warp shuffle to reduce the same g's values
+- **Verdict**: Warp shuffle reduction does NOT apply here without restructuring the code
+- **Alternative**: Keep the shared memory reduction but try other optimizations
 
 ### 2. bf16 to Float Conversion (MEDIUM Priority)
 **CUDA kernel lines 195-198:**
@@ -69,29 +61,50 @@ for (int lane = 0; lane < 16; ++lane) {
 sum = fmaf(bf16_to_float(s.q[g][d]),
            bf16_to_float(s.k[dot_tok][d]), sum);
 ```
-- **Issue**: Separate bf16→float conversion for each operand
-- **Try**: Check if MACA supports `__hfma2` or similar bf16 intrinsics
-- **Alternative**: Batch convert Q values before the inner loop
+- **Issue**: Separate bf16→float conversion for each operand in tight loop
+- **Try**: Prefetch Q values into registers before the K/V loop
+  ```cuda
+  // Before page loop: convert all Q values for this head group
+  __nv_bfloat16 q_reg[8];  // For Group=8
+  for (int d = 0; d < kHeadDim; ++d) {
+    q_reg[d] = s.q[g][d];
+  }
+  ```
+- **Expected gain**: Reduce shared memory reads and conversions
 
-### 3. Exp Approximation (LOW-MEDIUM Priority)
-**CUDA kernel line 236:**
+### 3. Register Prefetch for Q (MEDIUM Priority)
+**CUDA kernel lines 108-113:**
+- Q values are read from global memory into shared memory each iteration
+- **Try**: Keep Q in registers across iterations if registers allow
+
+### 4. Shared Memory Bank Conflict Avoidance (LOW Priority)
+**CUDA SharedStorage struct:**
 ```cuda
-w = __expf(s.logits[g][t] - new_m);
+float dot[kPageSize][Group][16];  // May have bank conflicts
 ```
-- **Issue**: `__expf` is expensive
-- **Try**: Use `__expf` approximation with limited precision if accuracy allows
-- Or use table lookup for common values
+- **Issue**: Strided access pattern may cause bank conflicts
+- **Try**: Pad the array or change layout: `float dot[16][Group][kPageSize]`
 
-### 4. Combine Kernel Optimization (LOW Priority)
-**CUDA kernel `combine_splits_kernel` lines 322-345:**
-- Two separate loops over splits
-- **Try**: Fuse into single pass using warp reductions
+### 5. K/V Prefetch with Software Pipelining (LOW Priority)
+**CUDA kernel lines 134-182:**
+- Current: Load K/V for current page, then compute
+- **Try**: Double buffer - compute on page N while loading page N+1
+
+## Safer Optimization Candidates
+
+### A. Triton: BLOCK_N Tuning
+- BLOCK_N parameter (16, 32, 64) affects occupancy and memory access
+- Profile different values for different seq_len ranges
+
+### B. Triton: NUM_SPLITS Selection
+- The `_pick_natural_splits` function determines split count
+- Fine-tune thresholds in this function for C500 architecture
 
 ## Quick Wins Checklist
-1. [ ] Warp-level reduction for dot product accumulation
-2. [ ] Prefetch Q values before K/V loop (reduce registers)
-3. [ ] Check MACA-specific intrinsics for bf16
-4. [ ] Profile memory access patterns
+1. [ ] Prefetch Q values into registers (safe, may improve register usage)
+2. [ ] Adjust Triton BLOCK_N for different seq_len ranges
+3. [ ] Profile memory access patterns with mcProfiler
+4. [ ] Analyze if MACA supports bf16 intrinsics like `__hfma`
 
 ## Iteration Workflow
 1. Commit current state: `git add -A && git commit -m "checkpoint"`
