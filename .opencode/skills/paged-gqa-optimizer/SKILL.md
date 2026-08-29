@@ -16,6 +16,33 @@ This skill guides an agent to iteratively optimize the kernel using profiling da
 - Group (GQA ratio) can be 4 or 8
 - Key parameters: kPageSize=16, kHeadDim=128, kNumHeads=32
 
+## MetaX C500 Architecture Notes
+- **Architecture**: SM80 (Ampere-generation)
+- **GPU**: MetaX C500 (104 APs, 64GB)
+- **No native bf16 MMA** - must use fp32 accumulation with bf16 loads
+- **Warp size**: 32 threads
+
+## MetaX-Specific Intrinsics
+
+### Available
+- `__ldg(ptr)` - Read-only global memory cache load
+- `__lane_id()` - Get lane ID within warp (instead of NVIDIA's `laneId`)
+- `__builtin_mxc_mma_16x16x16i8(a, b, c)` - INT8 MMA for C500
+- `bfloat16`/`half` types via `<cuda_bf16.h>` and `<cuda_half.h>`
+
+### NOT Available or Different
+- `__shfl_xor_sync` - May not work as expected; use `__lane_id()` pattern
+- `__hfma` - No native bf16 FMA; use `fmaf` with explicit conversion
+- `cp_async` - Disabled by default (`MACA_CP_ASYNC_ACTIVATED=0`)
+
+## Environment Setup
+```bash
+export MACA_PATH=/opt/maca/
+export MACA_CLANG_PATH=${MACA_PATH}/mxgpu_llvm/bin
+export LD_LIBRARY_PATH=${MACA_PATH}/lib:${MACA_PATH}/mxgpu_llvm/lib:$LD_LIBRARY_PATH
+export CUDA_PATH=$MACA_PATH/tools/cu-bridge
+```
+
 ## Profiler Usage
 ```bash
 mcProfiler perf_exec \
