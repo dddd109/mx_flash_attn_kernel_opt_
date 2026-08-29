@@ -17,23 +17,80 @@ This skill guides an agent to iteratively optimize the kernel using profiling da
 - Key parameters: kPageSize=16, kHeadDim=128, kNumHeads=32
 
 ## MetaX C500 Architecture Notes
-- **Architecture**: SM80 (Ampere-generation)
+- **Architecture**: SM80 (Ampere-generation, compatible with NVIDIA Ampere)
 - **GPU**: MetaX C500 (104 APs, 64GB)
-- **No native bf16 MMA** - must use fp32 accumulation with bf16 loads
 - **Warp size**: 32 threads
+
+### CRITICAL: No Native BF16 MMA
+Unlike NVIDIA Ampere which has `mma.sync.aligned.m16n8k8.f32.bf16.bf16.f32`, **C500 does NOT have native BF16 matrix multiplication**!
+
+All BF16 dot products must be computed as:
+1. Convert bf16 → float
+2. Compute float multiply-add
+3. Accumulate in float
+4. Convert back to bf16 (if needed)
+
+```cuda
+// This pattern is REQUIRED for C500:
+float sum = 0.0f;
+for (int d = 0; d < 128; ++d) {
+  sum += __bfloat162float(q_bf16[d]) * __bfloat162float(k_bf16[d]);
+}
+```
+
+### INT8 MMA is Available
+```cuda
+// Only for INT8, C500 only (__MACA_ARCH__ == 1000)
+__builtin_mxc_mma_16x16x16i8(a, b, c);
+```
 
 ## MetaX-Specific Intrinsics
 
 ### Available
-- `__ldg(ptr)` - Read-only global memory cache load
-- `__lane_id()` - Get lane ID within warp (instead of NVIDIA's `laneId`)
-- `__builtin_mxc_mma_16x16x16i8(a, b, c)` - INT8 MMA for C500
-- `bfloat16`/`half` types via `<cuda_bf16.h>` and `<cuda_half.h>`
+| Intrinsic | Description |
+|-----------|-------------|
+| `__lane_id()` | Get lane ID within warp (NVIDIA uses `laneId()`) |
+| `__builtin_mxc_ldg_b32(ptr, ...)` | Read-only global memory cache load (32-bit) |
+| `__builtin_mxc_ldg_b64(...)` | Read-only global memory cache load (64-bit) |
+| `__builtin_mxc_mma_16x16x16i8(a,b,c)` | INT8 MMA (C500 only) |
+| `__builtin_mxc_mma_16x16x4f32(a,b,c)` | FP32 MMA |
+| `__syncwave()` | Warp synchronization (NVIDIA uses `__syncwarp()`) |
 
-### NOT Available or Different
-- `__shfl_xor_sync` - May not work as expected; use `__lane_id()` pattern
-- `__hfma` - No native bf16 FMA; use `fmaf` with explicit conversion
-- `cp_async` - Disabled by default (`MACA_CP_ASYNC_ACTIVATED=0`)
+### NOT Available (DO NOT USE)
+| NVIDIA Intrinsic | MetaX Alternative |
+|-----------------|-------------------|
+| `__shfl_xor_sync` | **NOT AVAILABLE** |
+| `__reduce_add_sync` | **NOT AVAILABLE** |
+| `__ldg` (CUDA) | Use `__builtin_mxc_ldg_*` |
+| `cp.async` | **DISABLED** (`MACA_CP_ASYNC_ACTIVATED=0`) |
+
+### Standard CUDA Types (Work on MetaX)
+```cuda
+#include <cuda_bf16.h>
+__nv_bfloat16, __bfloat162float(), __float2bfloat16()
+__half, __half2float(), __float2half()
+```
+
+## Optimization Implications for Paged GQA
+
+### Memory Access (PRIORITY: HIGH)
+- Use `__builtin_mxc_ldg_b32` for Q, K, V loads (read-only cache)
+- Vectorized loads via `int4` are still beneficial
+- Ensure coalesced access patterns
+
+### Dot Product (PRIORITY: HIGH)
+- **MUST use scalar loop** with `bfloat16 → float → fmaf → float` pattern
+- Unroll inner loop for better ILP
+- No MMA optimization possible for BF16
+
+### Reduction (PRIORITY: MEDIUM)
+- **Warp shuffle NOT available** - must use shared memory reduction
+- Pattern: write to shared memory → syncthreads → parallel reduction
+- Consider tree-structured reduction
+
+### Software Pipelining (PRIORITY: MEDIUM)
+- Since cp_async disabled, manual double buffering required
+- Load next page while computing current page
 
 ## Environment Setup
 ```bash

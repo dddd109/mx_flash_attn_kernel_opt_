@@ -14,9 +14,184 @@
 | `benchmark_paged_gqa.py` | Python | Benchmark script |
 | `profile_paged_gqa.sh` | Bash | Profiling script |
 
-## MetaX Software Stack
+---
 
-### Environment Setup
+# MetaX C500 Software Stack Deep Dive
+
+## Stack Layer Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Application Code                         │
+│         (FlashAttention, Our Kernel, etc.)                  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Python / PyTorch                          │
+│              mcPytorch 2.8 + triton 3.0                      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     mcTriton                                  │
+│            Triton compiler for MetaX                         │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      mxcc                                    │
+│        Clang-based compiler (LLVM backend)                   │
+│              MACA_PATH/mxgpu_llvm/bin/                       │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   MCTLASS Library                            │
+│    CUTLASS-style templates: /opt/maca/include/mctlass/      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     MC Runtime (mcr)                         │
+│         /opt/maca/include/mcr/mc_runtime_api.h              │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Hardware: C500 GPU                         │
+│                  (104 APs, 64GB, SM80)                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Component Details
+
+### 1. MC Runtime (mcr)
+**Header**: `/opt/maca/include/mcr/`
+- `mc_runtime_api.h` - Main runtime API (similar to CUDA runtime)
+- `mc_runtime_types.h` - Type definitions
+- Key types: `mcStream_t`, `mcDeviceptr_t`, `mcArray_t`
+
+**Key differences from CUDA**:
+- `mcInit()` instead of `cudaInit()`
+- `mcMalloc()` / `mcFree()` similar to CUDA
+- `mcLaunchKernel()` - kernel launch (uses `MC_KERNEL_NAME` macro)
+- `__syncwave` instead of `__syncwarp`
+- `waveSize` instead of `warpSize`
+
+### 2. MCTLASS Library
+**Header**: `/opt/maca/include/mctlass/`
+
+MCTLASS = MetaX's CUTLASS port. Provides GEMM and tensor operation templates.
+
+**Key directories**:
+| Directory | Purpose |
+|-----------|---------|
+| `arch/` | Architecture-specific intrinsics (SM80, etc.) |
+| `gemm/` | GEMM warpups |
+| `epilogue/` | Post-GEMM operations |
+| `thread/` | Thread-level primitives |
+| `block/` | Block-level primitives |
+| `reduction/` | Reduction operations |
+
+**Key files**:
+| File | Purpose |
+|------|---------|
+| `mctlass.h` | Main include, defines `MCTLASS_HOST_DEVICE`, `MCTLASS_DEVICE` |
+| `bfloat16.h` | `bfloat16_t` type with conversion functions |
+| `array.h` | `Array<T, N>` template for vector types |
+| `arch/arch.h` | Architecture tags (Sm80, Sm86) and `LaneId()` |
+| `arch/maca_mma.h` | MetaX-specific MMA operations |
+| `arch/memory_sm80.h` | Memory access primitives |
+
+### 3. CUB Library
+**Header**: `/opt/maca/include/cub/`
+- Device-wide primitives: reduction, sorting, histogram
+- Similar to NVIDIA CUB
+
+### 4. CUTE Library
+**Header**: `/opt/maca/include/cute/`
+- Tensor expression template library
+- Layout, swizzle, tensor operations
+
+---
+
+## C500 vs NVIDIA Ampere (SM80) Comparison
+
+### Architecture
+| Aspect | NVIDIA Ampere (A100) | MetaX C500 |
+|--------|---------------------|------------|
+| Architecture | SM80 | SM80 (compatible) |
+| SMs | 108 | 104 |
+| Global Memory | HBM2, 1.6TB/s | Similar |
+| L2 Cache | 40MB | Different structure |
+| Warp Size | 32 | 32 |
+
+### BF16 MMA Support
+| Aspect | NVIDIA Ampere | MetaX C500 |
+|--------|--------------|------------|
+| BF16 MMA | Native `mma.sync.aligned.m16n8k8.f32.bf16.bf16.f32` | **NOT AVAILABLE** |
+| INT8 MMA | `mma.sync.aligned.m16n8k32.row.col.s32int8.int8.s32` | `__builtin_mxc_mma_16x16x16i8` |
+| FP32 MMA | `mma.sync.aligned.m16n8k8.f32.f32.f32.f32` | `__builtin_mxc_mma_16x16x4f32` |
+
+**Critical Gap**: C500 does NOT have native BF16 matrix multiplication! All bf16 operations must be:
+1. Converted to FP32
+2. Computed in FP32
+3. Converted back to BF16
+
+### Warp-Level Operations
+| Operation | NVIDIA | MetaX C500 |
+|-----------|--------|------------|
+| Get Lane ID | `laneId()` | `__lane_id()` |
+| Warp shuffle | `__shfl_xor_sync` | **NOT AVAILABLE** |
+| Warp reduce | `__reduce_add_sync` | **NOT AVAILABLE** |
+| Sync warp | `__syncwarp()` | `__syncwave()` |
+
+### Memory Operations
+| Operation | NVIDIA | MetaX C500 |
+|-----------|--------|------------|
+| LDG (read-only cache) | `__ldg()` | `__builtin_mxc_ldg_b32()` |
+| CP Async | `cp.async` | **DISABLED** (`MACA_CP_ASYNC_ACTIVATED=0`) |
+| Async copy | `cp.async.commit_group` | Not available |
+
+---
+
+## Available Intrinsics on C500
+
+### Memory Access
+```cuda
+// Read-only global load with cache
+__builtin_mxc_ldg_b32(ptr, offset, pred, ...)  // 32-bit
+__builtin_mxc_ldg_b64_predicator(...)           // 64-bit with predicate
+```
+
+### MMA Operations
+```cuda
+// INT8 MMA (C500 only, __MACA_ARCH__ == 1000)
+__builtin_mxc_mma_16x16x16i8(a, b, c)
+
+// FP32 MMA
+__builtin_mxc_mma_16x16x4f32(a, b, c)
+
+// BF16 MMA - only available in MacaMma template in maca_mma.h
+// BUT: Not exposed via standard PTX - only via mctlass templates
+```
+
+### Type Conversion
+```cuda
+// Standard CUDA bf16 conversions work
+__float2bfloat16(float val)
+__bfloat162float(bfloat16 val)
+```
+
+### Lane ID
+```cuda
+int lane_id = __lane_id();  // Returns 0-31
+```
+
+---
+
+## Environment Variables
 ```bash
 export MACA_PATH=/opt/maca/
 export MACA_CLANG_PATH=${MACA_PATH}/mxgpu_llvm/bin
@@ -25,112 +200,42 @@ export CUDA_PATH=$MACA_PATH/tools/cu-bridge
 export PATH=$MACA_PATH/mxgpu_llvm/bin:$MACA_PATH/bin:$PATH
 ```
 
-### Version Info
-- **MACA SDK**: 3.7.1.5
-- **LLVM**: mxgpu_llvm (based on clang/LLVM)
-- **Compiler**: `mxcc` (wraps clang for MACA)
-- **cu-bridge**: 3.7.1.5 (CUDA compatibility layer)
+---
 
-### Key Libraries & Headers
-| Path | Purpose |
-|------|---------|
-| `/opt/maca/include/flash_attn/` | Official FlashAttention API |
-| `/opt/maca/include/mcflashinfer/` | FlashInfer kernels (attention, page, fused_moe) |
-| `/opt/maca/include/mctlass/` | CUTLASS-style templates for MACA |
-| `/opt/maca/include/mctlass/arch/` | Architecture-specific intrinsics (SM80, etc.) |
-| `/opt/maca/lib/` | Prebuilt libraries |
-
-### Architecture-Specific Details (C500/SM80)
-
-#### SIMD/MMA Support
-- Located in: `/opt/maca/include/mctlass/arch/maca_mma.h`
-- `MacaMma<>` template for matrix multiply-add operations
-- Supported shapes: 16x16x16 (int8), 16x16x32 (int8 C6XX), etc.
-- Builtin: `__builtin_mxc_mma_16x16x16i8(a, b, c)` for C500
-
-#### Warp Operations
-- `__lane_id()` returns lane ID within warp (instead of NVIDIA's `laneId`)
-- Located in: `/opt/maca/include/mctlass/arch/arch.h`
-
-#### Memory Operations
-- Located in: `/opt/maca/include/mctlass/arch/memory_sm80.h`
-- `cp_async` (async copy) available but `MACA_CP_ASYNC_ACTIVATED` is 0 by default
-- Cache operations: `CacheOperation::Always`, `Global`, `Streaming`, `LastUse`, `WriteBack`, `WriteThrough`
-
-#### Important Notes
-1. **C500 corresponds to SM80 architecture** (Ampere-generation)
-2. **No native bf16 MMA** - must use fp32 accumulation with bf16 loads
-3. **`__ldg` intrinsic** - available for read-only global memory cache load
-4. **Warp shuffle** - `__shfl_*` intrinsics may work differently; check `LaneId()` implementation
-
-## Important Repositories
-1. **FlashAttention**: https://github.com/MetaX-MACA/flashattn
-2. **FlashInfer**: https://github.com/MetaX-MACA/McFlashInfer
-3. **mcTriton**: https://github.com/MetaX-MACA/mcTriton
-
-## Skill File
-- Location: `.opencode/skills/paged-gqa-optimizer/SKILL.md`
-- Purpose: Guide agent to optimize the kernel iteratively
-
-## Profiler Usage
+## Compilation Commands
 ```bash
-mcProfiler perf_exec \
-  --cmdline "python3 benchmark_paged_gqa.py" \
-  --kernelname "paged_gqa_decode_kernel" \
-  --casename "decode_bs4_seq16k" \
-  --cwd /root/code \
-  --metrics "sm_efficiency,achieved_occupancy,dram_utilization,l2_utilization" \
-  --per-kernel --single-pass
+# Using mxcc (Clang-based)
+mxcc -arch=sm80 -c kernel.cu -o kernel.o
+
+# Compile with mctlass support
+mxcc -arch=sm80 -I$MACA_PATH/include -c kernel.cu -o kernel.o
 ```
 
-## Key Metrics
-- `sm_efficiency`: SM utilization (target > 80%)
-- `achieved_occupancy`: Warp occupancy (target > 60%)
-- `dram_utilization`: Memory bandwidth (target > 70%)
-- `l2_utilization`: L2 cache hit rate (target > 40%)
+---
 
-## Identified Optimization Points (CUDA)
+## Key Optimization Implications
 
-### 1. Dot Product Reduction (REQUIRES ANALYSIS)
-- **Location**: Lines 214-218
-- **Issue**: Shared memory reduction for 16 lanes
-- **Status**: Warp shuffle does NOT apply directly (tid < Group threads cannot exchange all 16 lane data)
-- **Alternative**: Keep shared memory approach but optimize other parts
+### For BF16 Attention Kernel (Our Case):
+1. **Cannot use MMA for dot products** - Must use scalar bf16→float→fmaf→float pattern
+2. **No warp shuffle reduction** - Must use shared memory for reductions
+3. **Memory access is critical** - `__ldg` for read-only data, vectorized loads
+4. **Software pipelining** - Since cp_async disabled, overlap compute with memory load manually
 
-### 2. bf16 to Float Conversion (MEDIUM Priority)
-- **Location**: Lines 195-198
-- **Issue**: Separate bf16→float conversion in tight loop
-- **Try**: Prefetch Q values into registers before inner loop
+### Optimization Priority:
+1. **Memory coalescing** - Ensure Q/K/V loads are coalesced
+2. **Shared memory tiling** - Maximize data reuse
+3. **Register usage** - Keep frequently used values in registers
+4. **Occupancy** - Balance register pressure vs occupancy
 
-### 3. Memory Access Pattern (HIGH Priority)
-- **Location**: Lines 166-181
-- **Issue**: Indirect memory access through pointer arithmetic
-- **Try**: Use `__ldg` intrinsic for read-only cache load
+---
 
-### 4. Online Softmax (LOW Priority)
-- **Location**: Lines 211-240
-- **Try**: Reduce sync barriers if possible
+## Official MetaX Repositories
+1. **FlashAttention**: https://github.com/MetaX-MACA/flashattn
+2. **McFlashInfer**: https://github.com/MetaX-MACA/McFlashInfer
+3. **mcTriton**: https://github.com/MetaX-MACA/mcTriton
+4. **mctlass**: Part of SDK at `/opt/maca/include/mctlass/`
 
-## Identified Optimization Points (Triton)
-
-### 1. BLOCK_N Selection (HIGH Priority)
-- **Location**: `_pick_block_n()` function (lines 882-887)
-- **Current**: 16 if seq<=16, 32 if seq<=256, else 64
-- **Try**: Adjust thresholds based on C500 memory hierarchy
-
-### 2. NUM_SPLITS Selection (MEDIUM Priority)
-- **Location**: `_pick_natural_splits()` function
-- **Impact**: Parallelism vs overhead tradeoff for long sequences
-
-### 3. D_TILE Parameter (LOW Priority)
-- **Location**: Line 34
-- **Current**: 64
-- **Try**: Test 32 or 128 for different head_dim
-
-## MetaX-Specific Considerations
-1. **Compiler Differences**: MACA's `mxcc` may have different optimization behaviors than NVCC
-2. **Memory Hierarchy**: C500 has different L2 cache size/structure than NVIDIA GPUs
-3. **Intrinsics**: Some NVIDIA intrinsics may not be available on MACA (e.g., `__shfl_xor_sync`)
+---
 
 ## Git Workflow
 - Branch: `master` is main branch
@@ -151,5 +256,5 @@ mcProfiler perf_exec \
 
 ## Session Summary
 Date: 2026-08-29
-Current state: Analyzed code, created skill and scripts, identified optimization points
-Next step: Run profile on GPU when available, then implement safe optimizations
+Current state: Analyzed code, created skill and scripts, deeply investigated MetaX stack
+Key finding: **C500 lacks native BF16 MMA** - must use FP32 accumulation
