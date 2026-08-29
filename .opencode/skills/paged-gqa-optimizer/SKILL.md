@@ -7,17 +7,31 @@ description: Optimize paged GQA attention kernel for MetaX C500 GPU
 
 ## Target
 Optimize paged grouped-query-attention (GQA) decode kernel for MetaX C500 GPU.
+This skill guides an agent to iteratively optimize the kernel using profiling data.
+
+## Code Context
+- CUDA version: `metax_c500_paged_gqa_decode_attempt.cu`
+- Triton version: `submission_c500_regions.py`
+- Both implement the same paged GQA decode algorithm
+- Group (GQA ratio) can be 4 or 8
+- Key parameters: kPageSize=16, kHeadDim=128, kNumHeads=32
 
 ## Profiler Usage
 ```bash
 mcProfiler perf_exec \
-  --cmdline "python3 benchmark.py" \
+  --cmdline "python3 benchmark_paged_gqa.py" \
   --kernelname "paged_gqa_decode_kernel" \
   --casename "decode_bs4_seq16k" \
   --cwd /root/code \
-  --metrics "sm_efficiency,achieved_occupancy,dram_utilization" \
+  --metrics "sm_efficiency,achieved_occupancy,dram_utilization,l2_utilization" \
   --per-kernel --single-pass
 ```
+
+Profile key metrics:
+- `sm_efficiency`: SM utilization (target > 80%)
+- `achieved_occupancy`: Warp occupancy (target > 60%)
+- `dram_utilization`: Memory bandwidth (target > 70%)
+- `l2_utilization`: L2 cache hit rate (target > 40%)
 
 ## Key Metrics to Profile
 - `sm_efficiency`: SM utilization (target > 80%)
@@ -118,3 +132,66 @@ float dot[kPageSize][Group][16];  // May have bank conflicts
 - Always have a working restore point
 - Test correctness before profiling
 - Keep detailed notes of each change and result
+
+## Triton Optimization Parameters
+
+The Triton version has tunable parameters in `submission_c500_regions.py`:
+
+| Parameter | Current Values | Impact |
+|-----------|----------------|--------|
+| `BLOCK_N` | 16, 32, 64 | Memory access granularity vs occupancy |
+| `D_TILE` | 64 | Head dimension tiling |
+| `NUM_SPLITS` | Auto (via `_pick_natural_splits`) | Parallelism for long sequences |
+| `num_stages` | 1 or 2 | Software pipeline depth |
+
+### BLOCK_N Selection Heuristic (lines 882-887)
+```python
+def _pick_block_n(seqlen_k):
+    if seqlen_k <= 16:
+        return 16   # Fine granularity
+    if seqlen_k <= 256:
+        return 32   # Balanced
+    return 64        # Coarse granularity for long sequences
+```
+- **Try**: Adjust thresholds based on C500 memory hierarchy
+- Small BLOCK_N: Better cache utilization, lower occupancy
+- Large BLOCK_N: Worse cache utilization, higher occupancy
+
+### NUM_SPLITS Selection (lines 830-864)
+Controls how many parallel work units process a single decode query.
+- More splits: Better parallelism for long sequences, more overhead
+- Fewer splits: Less overhead, less parallelism
+
+## CUDA Optimization Parameters
+
+| Constant | Current Value | Impact |
+|----------|---------------|--------|
+| `kThreads` | 256 | Threads per block |
+| `kPageSize` | 16 | Tokens per page |
+| `kMaxSplits` | 32 | Maximum split count |
+| `kMaxSplitBatch` | 16 | Max batch for split |
+
+### Key Hot Loops to Optimize
+
+**1. K/V Load (lines 163-178):** Memory-bound, vectorized load
+**2. Dot Product (lines 193-199):** Compute-bound, bf16→float conversion
+**3. Online Softmax (lines 211-240):** Mixed, reduction operations
+
+## Profiling Workflow
+
+1. Run baseline benchmark:
+   ```bash
+   python3 benchmark_paged_gqa.py > baseline_results.csv
+   ```
+
+2. Profile specific kernel:
+   ```bash
+   mcProfiler perf_exec --cmdline "python3 profile_run.py" ...
+   ```
+
+3. Compare metrics before/after each change
+
+4. Key ratios to check:
+   - If `sm_efficiency < 50%`: Likely memory-bound, optimize memory access
+   - If `achieved_occupancy < 40%`: Resource contention, adjust block size
+   - If `dram_utilization < 30%`: Poor memory access pattern
