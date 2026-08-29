@@ -43,39 +43,55 @@ mcProfiler perf_exec \
 
 ## Identified Optimization Points
 
-### 1. Memory Access (High Priority)
-**CUDA kernel lines 166-181:**
+### 1. Dot Product Reduction - Warp-level Reduce (HIGH PRIORITY)
+**CUDA kernel lines 214-218:**
 ```cuda
-// Current: scalar loads for kval, vval
-int4 kval = zero4;
-if (tok < valid_tokens) {
-  kval = *reinterpret_cast<const int4*>(k_cache_paged + cache_offset);
+for (int lane = 0; lane < 16; ++lane) {
+  dot += s.dot[t][g][lane];
 }
 ```
-- **Issue**: Indirect access through pointer arithmetic may not be optimal
-- **Try**: Explicit prefetch, Software pipelining
+- **Issue**: Reads from shared memory 16 times for simple reduction
+- **Try**: Use warp-level shuffle reduction before syncthreads
+  ```cuda
+  // Use __shfl_xor_sync to reduce within warp
+  float dot = s.dot[t][g][dot_lane];
+  dot += __shfl_xor_sync(0xffffffff, dot, 16);
+  dot += __shfl_xor_sync(0xffffffff, dot, 8);
+  dot += __shfl_xor_sync(0xffffffff, dot, 4);
+  dot += __shfl_xor_sync(0xffffffff, dot, 2);
+  dot += __shfl_xor_sync(0xffffffff, dot, 1);
+  ```
+- **Expected gain**: ~30-50% faster reduction phase
 
-### 2. Dot Product Unroll (High Priority)
-**CUDA kernel lines 189-201:**
+### 2. bf16 to Float Conversion (MEDIUM Priority)
+**CUDA kernel lines 195-198:**
 ```cuda
-#pragma unroll
-for (int k = 0; k < 8; ++k) {
-  sum = fmaf(bf16_to_float(s.q[g][d]),
-             bf16_to_float(s.k[dot_tok][d]), sum);
-}
+sum = fmaf(bf16_to_float(s.q[g][d]),
+           bf16_to_float(s.k[dot_tok][d]), sum);
 ```
-- **Issue**: 8 separate bf16→float conversions per iteration
-- **Try**: Use `__hfma` intrinsic for bf16 directly if available
+- **Issue**: Separate bf16→float conversion for each operand
+- **Try**: Check if MACA supports `__hfma2` or similar bf16 intrinsics
+- **Alternative**: Batch convert Q values before the inner loop
 
-### 3. Online Softmax Reduction (Medium Priority)
-**CUDA kernel lines 206-246:**
-- Thread divergence in `tid < Group` branch
-- **Try**: Use warp-level reductions before shared memory sync
+### 3. Exp Approximation (LOW-MEDIUM Priority)
+**CUDA kernel line 236:**
+```cuda
+w = __expf(s.logits[g][t] - new_m);
+```
+- **Issue**: `__expf` is expensive
+- **Try**: Use `__expf` approximation with limited precision if accuracy allows
+- Or use table lookup for common values
 
-### 4. Split Overhead (Medium Priority)
-**CUDA kernel `combine_splits_kernel`:**
-- Sequential reduce over splits
-- **Try**: Tree-structured reduce or keep more computation in main kernel
+### 4. Combine Kernel Optimization (LOW Priority)
+**CUDA kernel `combine_splits_kernel` lines 322-345:**
+- Two separate loops over splits
+- **Try**: Fuse into single pass using warp reductions
+
+## Quick Wins Checklist
+1. [ ] Warp-level reduction for dot product accumulation
+2. [ ] Prefetch Q values before K/V loop (reduce registers)
+3. [ ] Check MACA-specific intrinsics for bf16
+4. [ ] Profile memory access patterns
 
 ## Iteration Workflow
 1. Commit current state: `git add -A && git commit -m "checkpoint"`
