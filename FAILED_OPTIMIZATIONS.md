@@ -74,6 +74,21 @@ All optimization attempts below **FAILED** to improve performance. The baseline 
 
 ---
 
+## 5. cache_modifier='ca' for K/V Loads
+**Date**: 2026-08-30
+
+**Change**: Add `cache_modifier='ca'` to K/V loads in Triton kernel
+
+**Expected**: Utilize read-only cache (LDG) for better bandwidth
+
+**Result**: ❌ **Not attempted** - Required modifying multiple load sites with complex indentation
+
+**Root Cause**: Triton kernel has multiple load patterns requiring careful modification. Risk of introducing bugs.
+
+**Verdict**: Too risky for marginal gain (Triton compiler likely already optimizes this)
+
+---
+
 ## Key Insights
 
 ### What Didn't Help
