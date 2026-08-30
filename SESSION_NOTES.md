@@ -243,6 +243,31 @@ mxcc -arch=sm80 -I$MACA_PATH/include -c kernel.cu -o kernel.o
 - Before optimization: Always commit current state
 - If change causes regression: `git restore <file>`
 
+## Profiling Results (2026-08-30)
+
+### Torch Profiler Results (bs=8, seq=16384, nkv=8)
+| Kernel | Time | % Time |
+|--------|------|--------|
+| `_paged_gqa_fulltile_kernel` | 552.776us | 98.83% |
+| `_reduce_splits_kernel` | 6.525us | 1.17% |
+
+### Baseline Performance
+| Config | Time | Bandwidth |
+|--------|------|-----------|
+| bs=8, seq=16384, nkv=8 | 0.551ms | 973.84 GB/s |
+| bs=8, seq=8192, nkv=8 | 0.282ms | 950.82 GB/s |
+| bs=8, seq=4096, nkv=8 | 0.150ms | 897.95 GB/s |
+| bs=4, seq=16384, nkv=8 | 0.282ms | 950.50 GB/s |
+
+### Key Findings
+1. Main kernel is at 98.83% - optimizing this is the key
+2. Reduce kernel is only 1.17% - not the bottleneck
+3. Performance is already ~95% of theoretical memory bandwidth (1TB/s for C500)
+
+### Optimization Attempts
+1. **BLOCK_N tuning (32 for medium seq)**: No significant improvement
+2. **Conclusion**: Already highly optimized for memory bandwidth
+
 ## TODO
 - [x] Initialize git repository
 - [x] Create skill file
