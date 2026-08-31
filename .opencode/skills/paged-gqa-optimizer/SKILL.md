@@ -130,6 +130,30 @@ assert not (diff > 8 * tol).any()              # no 8x outliers
 - A good optimized kernel scores 60-70+
 - Focus on cases where flash is slow (small batch short seq, and batch=1 long seq)
 
+## Empirical Performance Insights (learned from profiling, not answers)
+
+Your kernel's TOTAL score depends on ALL cases. Profile shows:
+- The highest-scoring kernels gain most from SHORT sequences (seqlen < 100): they
+  achieve ~2.5x faster than flash there (flash is inefficient on tiny workloads due
+  to launch overhead and low parallelism).
+- For LONG sequences (seqlen 2048+), flash is already near-optimal. You should aim
+  to match it there, not dramatically beat it. Do NOT spend too long chasing >1x on
+  long sequences - the short-sequence wins matter more for the score.
+- The single most impactful tuning lever is your SPLIT COUNT / work partition:
+  - Too few splits: SMs idle on small-batch long-seq cases.
+  - Too many splits: combine/partial-output traffic dominates on large-batch or
+    short-seq cases (partial write+combine is ~32KiB per split per head).
+  - Fixed split sizes waste performance across heterogeneous cases. Make the split
+    choice ADAPTIVE based on (batch, num_heads_k, seqlen) at runtime.
+  - Page-aligned splits (multiple of page_block_size) let you skip boundary checks.
+  - On small-batch-long-seq, prefer enough splits to fill all SMs but no more.
+  - On large-batch cases, more (batch, head) work already fills SMs -> use few splits.
+- A combined single-kernel path (no separate combine kernel) for short sequences is a
+  clear win: many short cases spend significant time in a second kernel launch.
+- When your KV loads are already vectorized 16B and reuse is good, the next biggest
+  win is usually NOT more compute but reducing redundant work: reading each K/V
+  page exactly once per query-head group that needs it.
+
 ## Environment
 ```bash
 export MACA_PATH=/opt/maca/
