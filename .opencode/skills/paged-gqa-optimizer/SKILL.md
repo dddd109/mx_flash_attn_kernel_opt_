@@ -1,111 +1,134 @@
 ---
-name: paged-gqa-cuda-optimizer-v5
+name: paged-gqa-cuda-optimizer-v6
 description: Guide agent to optimize paged GQA attention using CUDA for MetaX C500
 ---
 
-# Paged GQA Attention Optimization Guide v5
+# Paged GQA Attention Optimization Guide v6
+
+## ⚠️ CRITICAL: Independent Implementation Required ⚠️
+
+You MUST write your OWN kernel. Do NOT copy, paste, or structurally mirror any
+existing CUDA implementation file. The evaluation checks that your implementation
+is genuinely your own work. You may look at general reference materials, but the
+final kernel structure and code must be authored by you.
 
 ## Your Task
-Optimize paged GQA attention decode kernel to achieve high performance on MetaX C500 GPU.
+Optimize paged GQA attention decode kernel for MetaX C500 GPU, starting from the
+flash_attn_with_kvcache baseline. Your goal is to beat the baseline by a significant
+margin across all OJ test cases.
 
-## Baseline
-Use flash_attn_with_kvcache as your baseline:
-```python
-out = flash_attn_with_kvcache(
-    q, k_cache, v_cache, None, None,
-    cache_seqlens=cache_seqlens,
-    block_table=block_table,
-    causal=False,
-    num_splits=0,  # Auto split
-)
-```
+## Baseline Reference Performance
+Use flash_attn_with_kvcache with `num_splits=0` as your baseline. Measured with
+`torch.cuda.Event` timing (NOT torch.profiler - it underreports on C500):
 
-## Target Performance
-Study `/root/code/optimized_c500_flash_attn.cu` to understand the optimization target.
-Study `/root/code/task.md` to understand the OJ task requirements.
+| case | batch | seqlen_k | num_heads_k | flash_time (us) |
+|------|-------|----------|-------------|-----------------|
+| 1 | 4 | 8 | 4 | 31.5 |
+| 2 | 4 | 2 | 8 | 31.7 |
+| 3 | 16 | 17 | 8 | 38.2 |
+| 4 | 64 | 64 | 4 | 38.6 |
+| 5 | 16 | 141 | 8 | 38.9 |
+| 7 | 64 | 2048 | 4 | 162.0 |
+| 8 | 16 | 4096 | 4 | 90.9 |
+| 9 | 32 | 8 | 4 | 31.8 |
+| 10 | 1 | 8192 | 4 | 57.4 |
+| 11 | 16 | 12251 | 4 | 206.1 |
+| 12 | 8 | 32768 | 4 | 320.7 |
+| 13 | 1 | 58966 | 4 | 153.4 |
+
+## Task Specification
+Read `/root/code/task.md` for the complete OJ interface specification.
 
 ## Key Constraints (from task.md)
-- num_heads = 32, headdim = 128, page_block_size = 16
-- num_heads_k = 4 or 8 (GQA)
-- causal = 0 (decode only)
-- block_table padding may contain valid page IDs - only use cache_seqlens to determine validity
-- num_blocks = batch_size * ceil(seqlen_k / page_block_size) (NO 3x redundancy)
+- num_heads = 32, headdim = 128, page_block_size = 16, causal = 0
+- num_heads_k = 4 or 8 (GQA ratio = 8 or 4)
+- cache_seqlens[b] varies per batch; only trust this for validity
+- block_table padding slots may be valid page IDs - never read them
+- num_blocks = batch_size * ceil(seqlen_k / page_block_size)
+- Each batch has 1 query token (seqlen_q = 1)
 
-## Optimization Hints (General Guidance)
-
-### 1. Memory Access Patterns
-- **Vectorized loads**: Use int4 (16-byte) loads for K/V data
-- **Affine addressing**: Precompute base pointers, use fixed stride iteration
-- **Block table access**: Use lane 0 to load, broadcast via warp shuffle
-- **Bank conflicts**: Shared memory access patterns matter - consider swizzle patterns
-
-### 2. Computation Strategy
-- **MMA operations**: C500 has MMA hardware - explore mctlass library for BF16 MMA
-- **Online softmax**: Implement numerically stable softmax incrementally
-- **GQA efficiency**: Multiple query heads share KV heads - process together
-
-### 3. Parallelism
-- **Split-KV**: For long sequences, split KV across multiple work units
-- **Wave-level**: Each wave processes one (batch, KV head, split) combination
-- **Occupancy**: Balance threads per block for good SM utilization
-
-### 4. MetaX C500 Specifics
-- **Architecture**: SM80-compatible, 104 APs
-- **Shared memory**: 64KB per block, 32 banks
-- **Warp shuffle**: Available! Use for reductions within warp
-- **Useful headers**: `<mctlass/numeric_types.h>`, `<cute/arch/mma_sm80.hpp>`
-
-## Data Layout Reminder
+## Data Layout
 ```
-Q: (batch, seqlen_q=1, num_heads, headdim)
-K/V cache: (num_blocks, page_block_size, num_heads_k, headdim)
-block_table: (batch, blocks_per_batch) where blocks_per_batch = ceil(seqlen_k / page_block_size)
-cache_seqlens: (batch_size,) - actual KV length per batch
+Q: (batch, 1, num_heads, headdim) - bf16
+K/V cache: (num_blocks, page_block_size, num_heads_k, headdim) - bf16
+block_table: (batch, blocks_per_batch) - int32
+cache_seqlens: (batch,) - int32
 
-Token t (0 <= t < cache_seqlens[b]) location:
-  page = block_table[b, t // page_block_size]
-  offset = t % page_block_size
+Token t of batch b:
+  page = block_table[b, t // 16]
+  offset = t % 16
+  kv[page, offset, kv_head, :] where kv_head = query_head // gqa_ratio
 ```
 
-## Suggested Implementation Steps
+## Implementation Requirements
 
-1. **Start with correct baseline**:
-   - Implement flash_attn-equivalent using simple loops
-   - Verify correctness against flash_attn output
+1. CUDA C++ with mctlass library
+2. Export `run_kernel` exactly as specified in task.md (extern "C")
+3. Compile: `/opt/maca/mxgpu_llvm/bin/mxcc -std=c++17 -shared -fPIC -c ...`
+4. Verify correctness vs flash_attn (rtol=atol=1.6e-2, >=99% match)
+5. **Measure with torch.cuda.Event, NOT torch.profiler**
 
-2. **Add vectorized memory access**:
-   - Use int4 loads for K/V data
-   - Coalesced memory access patterns
+## Optimization Directions to Explore (research these independently)
 
-3. **Implement shared memory caching**:
-   - Load page into shared memory
-   - Process all tokens in page before loading next
+### 1. Memory Access Efficiency
+- Vectorized 16-byte loads (int4) for K/V pages
+- Coalesced access patterns across threads
+- Consider how to minimize address computation overhead
+  (hint: incremental address arithmetic beats per-element indexing)
 
-4. **Add GQA optimization**:
-   - Process multiple query heads together
-   - Share KV data within group
+### 2. GQA Data Reuse
+- 8 query heads share each KV head (ratio 8)
+- Process a query-head group together to reuse loaded K/V
 
-5. **Explore MMA and split-KV**:
-   - Consider using mctlass MMA primitives
-   - Split long sequences for parallelism
+### 3. Parallelization Strategy
+- Long sequences (4096+) need work splitting across SMs
+- Consider splitting the KV dimension across parallel waves
+- Small batch + long sequence is the hardest case (case 10, 13)
+- Large batch + short sequence also matters (case 1-5, 9)
 
-## Common Pitfalls
-- **Wrong block_table indexing**: Remember blocks_per_batch may not equal ceil(seqlen_k/16) exactly
-- **Ignoring cache_seqlens**: Each batch element has different actual length
-- **Bank conflicts**: Linear access patterns can cause shared memory conflicts
-- **Register pressure**: Too many registers causes spills to slow local memory
+### 4. Shared Memory and Bank Conflicts
+- 32 shared memory banks; linear access patterns can conflict
+- Explore swizzle/index-transformation patterns
+- Test different layouts empirically
 
-## Profiling Tips
+### 5. Compute Kernel
+- Explore mctlass BF16 MMA primitives (cute/MACA headers)
+- Compare MMA vs scalar compute for your workload
+- FP32 accumulation, bf16 only at boundaries
+
+### 6. Online Softmax
+- Numerically stable streaming softmax for long sequences
+- FP32 state (running max, running sum) updated incrementally
+
+## Benchmarking Methodology (IMPORTANT)
 ```python
-with torch.profiler.profile(activities=[torch.profiler.ProfilerActivity.CUDA]) as prof:
-    run_kernel(...)
-# Check key_averages() for kernel time breakdown
+# CORRECT: use cuda events
+start = torch.cuda.Event(enable_timing=True)
+end = torch.cuda.Event(enable_timing=True)
+torch.cuda.synchronize()
+start.record()
+for _ in range(reps): run()
+end.record()
+torch.cuda.synchronize()
+per_call_us = start.elapsed_time(end) * 1000 / reps
+
+# WRONG: torch.profiler (underreports ~400x on C500)
 ```
 
 ## Verification
 ```python
-assert torch.allclose(output, reference, rtol=1e-2, atol=1e-2)
+out = your_run_kernel(...)
+ref = flash_attn_with_kvcache(...)
+diff = (out - ref).abs()
+tol = 1.6e-2 + 1.6e-2 * ref.abs()
+assert (diff <= tol).float().mean() >= 0.99   # >=99% match
+assert not (diff > 8 * tol).any()              # no 8x outliers
 ```
+
+## Scoring Context
+- Baseline flash_attn = 50 points
+- A good optimized kernel scores 60-70+
+- Focus on cases where flash is slow (small batch short seq, and batch=1 long seq)
 
 ## Environment
 ```bash
@@ -113,8 +136,8 @@ export MACA_PATH=/opt/maca/
 export PATH=$MACA_PATH/mxgpu_llvm/bin:$MACA_PATH/bin:$PATH
 ```
 
-## Compilation Example
+## Compilation Reference
 ```bash
-/opt/maca/mxgpu_llvm/bin/mxcc -std=c++17 -c your_kernel.cu -o your_kernel.o \
+/opt/maca/mxgpu_llvm/bin/mxcc -std=c++17 -shared -fPIC your_kernel.cu -o your_kernel.so \
     -I/opt/maca/include -I/opt/maca/tools/cu-bridge/include
 ```
