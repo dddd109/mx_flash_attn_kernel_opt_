@@ -1,147 +1,147 @@
 ---
-name: paged-gqa-optimizer-final
-description: Guide agent to write custom kernel for paged GQA attention - FINAL VERSION
+name: paged-gqa-cuda-optimizer
+description: Guide agent to optimize paged GQA attention using CUDA/mctlass for MetaX C500
 ---
 
-# Paged GQA Attention Optimization Guide v4 (FINAL)
+# Paged GQA Attention Optimization Guide v5 (CUDA/mctlass)
 
-## ⚠️ CRITICAL REQUIREMENT ⚠️
+## ⚠️ CRITICAL: This is a CUDA/mctlass Optimization Task ⚠️
 
-**You MUST implement a CUSTOM kernel. flash_attn parameter tuning is NOT acceptable.**
+You MUST implement a CUDA kernel using mctlass library, NOT just tune Triton or flash_attn parameters.
 
-The goal is to learn how to optimize kernels, not just tune parameters.
+## Your Goal
+Optimize paged GQA attention decode kernel to match or exceed the performance of optimized_c500_flash_attn.cu (v9).
 
-## Target
-- Beat flash_attn baseline (~460us for bs=4, seq=4096)
-- Target: ~80-90us with custom kernel
+## Reference Implementation
+Study `/root/code/optimized_c500_flash_attn.cu` to understand the optimization techniques used.
 
-## Data Layout (CRITICAL - Understand This!)
+## Target Performance
+- Beat flash_attn baseline (~180us for case 8: batch=16, seq=4096)
+- Match optimized_c500_flash_attn.cu performance (~1800us is the OJ target, but local testing shows ~200us achievable)
+
+## Test Configuration (from task.md)
+```python
+# Case 8 (typical perf case):
+batch_size = 16
+seqlen_k = 4096
+num_heads_k = 4  # or 8
+headdim = 128
+num_heads = 32
+page_block_size = 16
+seqlen_q = 1
+causal = 0
+num_blocks = batch_size * ceil(seqlen_k / page_block_size)  # NO 3x redundancy!
+```
+
+## Data Layout (CRITICAL)
 
 ### Input Tensors
 ```python
-# Q: (batch_size, num_qo_heads, head_dim) - bf16
-# kv_data: (num_blocks, 2, page_block_size, num_kv_heads, head_dim) - bf16
-#   kv_data[:, 0] = K cache
-#   kv_data[:, 1] = V cache
-# block_table: (batch_size, blocks_per_batch) - int32
-#   block_table[b, logical_page] = physical_block_id
-# cache_seqlens: (batch_size,) - int32
+# q: (batch_size, seqlen_q=1, num_heads, headdim) - bf16
+# k_cache_paged: (num_blocks, page_block_size, num_heads_k, headdim) - bf16
+# v_cache_paged: (num_blocks, page_block_size, num_heads_k, headdim) - bf16
+# cache_seqlens: (batch_size,) - int32 (actual KV length per batch)
+# block_table: (batch_size, num_blocks/batch_size) - int32
 ```
 
-### K/V Flattening
-After `k = kv_data[:, 0, :, :, :]`:
-- Shape: (num_blocks, page_block_size, num_kv_heads, head_dim)
-
-After `k = k.reshape(num_blocks * page_block_size * num_kv_heads, head_dim)`:
-- Shape: (num_blocks * page_block_size * num_kv_heads, head_dim)
-- Index: `block_id * page_block_size * num_kv_heads + page_offset * num_kv_heads + kv_head_id`
-
-### Attention Pattern (Decode)
-For decode (seq_len_q=1):
-- Each query token attends to ALL KV tokens
-- Q shape: (num_qo_heads, head_dim) per batch
-- K shape: (seq_len_kv, num_kv_heads, head_dim) per batch
-- Output shape: (num_qo_heads, head_dim) per batch
-
-## Triton Implementation Guidance
-
-### Kernel Structure
+### GQA Mapping
 ```python
-@triton.jit
-def kernel(
-    q_ptr, k_ptr, v_ptr, out_ptr,
-    block_table_ptr, cache_seqlens_ptr,
-    batch_size, seq_len_kv, num_qo_heads, num_kv_heads,
-    head_dim, page_block_size, blocks_per_batch,
-):
-    # Grid: (batch_size * num_qo_heads,)
-    # Each instance computes attention for ONE (batch, qo_head)
-    
-    pid = tl.program_id(0)
-    batch_id = pid // num_qo_heads
-    qo_head_id = pid % num_qo_heads
-    kv_head_id = qo_head_id // (num_qo_heads // num_kv_heads)  # GQA mapping
-    
-    # Load Q for this head
-    # ... load q ...
-    
-    # Iterate over KV pages
-    # For each token in page: compute attention, update online softmax state
-    
-    # Store final output
+gqa_ratio = num_heads // num_heads_k  # 8 for kv4, 4 for kv8
+kv_head = query_head // gqa_ratio
 ```
 
-### Online Softmax Pattern
+### KV Token Location
 ```python
-m_i = -inf  # max of exponentials so far
-l_i = 0     # sum of exponentials so far  
-acc = 0     # accumulated weighted sum
-
-for each token t:
-    s = q @ k_t  # dot product (scalar for decode)
-    m_new = max(m_i, s)
-    p = exp(s - m_new)
-    l_new = l_i * exp(m_i - m_new) + p
-    acc = acc * exp(m_i - m_new) + p * v_t
-    m_i = m_new
-    l_i = l_new
-
-output = acc / l_i
+# Token t (0 <= t < cache_seqlens[b]) is at:
+#   block_table[b, t // page_block_size] -> physical page
+#   offset in page = t % page_block_size
 ```
 
-### Debugging Tips
-1. **Print intermediate values**: Use `tl.debug_print` to see values
-2. **Verify K/V access**: Check if you're reading the right indices
-3. **Test with small inputs**: Single batch, single head, short sequence
-4. **Compare against reference**: Flash_attn output should match
+## CUDA/mctlass Implementation Tips
 
-## Common Mistakes
+### Key Components from optimized_c500_flash_attn.cu
 
-### Mistake 1: Wrong K/V Index Calculation
-```python
-# WRONG:
-offset = block_id * page_block_size * num_kv_heads + t * num_kv_heads
-
-# CORRECT (for flattened layout):
-offset = (block_id * page_block_size * num_kv_heads + t * num_kv_heads + kv_head_id) * head_dim
+1. **BF16 MMA Operation**
+```cpp
+using MctBfloat16 = mctlass::bfloat16_t;
+using MmaOp = cute::MACA_16x16x16_F32BF16BF16F32;
+// Use MmaOp::fma for bf16 matrix multiplication
 ```
 
-### Mistake 2: Ignoring GQA
-```python
-# Multiple QO heads share same K/V head
-kv_head_id = qo_head_id // (num_qo_heads // num_kv_heads)
+2. **Shared Memory Swizzle for K/V**
+```cpp
+// K uses Swizzle<3,3,3> pattern:
+// slot = tile * 1024 + (row*64 + col) ^ ((row*64 + col >> 6) << 3)
+
+// V uses XOR swizzle:
+// slot = token * 128 + (d ^ (token << 3))
 ```
 
-### Mistake 3: Wrong Softmax Normalization
-```python
-# WRONG: Normalize directly
-output = acc / l_i
-
-# CORRECT: Account for numerical stability
-output = acc / l_i  # Actually this is correct if using online softmax correctly
+3. **Warp-level Operations**
+```cpp
+// C500 DOES support __shfl_xor_sync unlike earlier assumed!
+// Use for reduction within warp
+value = __shfl_xor_sync(uint64_t(-1), value, 16);
+value = __shfl_xor_sync(uint64_t(-1), value, 32);
 ```
 
-## Verification Steps
-```python
-# 1. Run your kernel
-your_output = run_kernel(...)
-
-# 2. Get flash_attn reference
-ref_output = flash_attn_with_kvcache(...)
-
-# 3. Compare
-assert torch.allclose(your_output, ref_output, rtol=1e-2, atol=1e-2)
+4. **Split-KV for Long Sequences**
+```cpp
+// Split KV across multiple waves for parallelism
+// Each wave processes a portion of KV tokens
 ```
 
-## Profiling
-```python
-with torch.profiler.profile(...) as prof:
-    run_your_kernel(...)
-# Check YOUR kernel name in key_averages()
-```
-
-## Environment
+## Environment Setup
 ```bash
 export MACA_PATH=/opt/maca/
 export PATH=$MACA_PATH/mxgpu_llvm/bin:$MACA_PATH/bin:$PATH
+```
+
+## Compilation
+```bash
+/opt/maca/mxgpu_llvm/bin/mxcc -march=sm80 -c your_kernel.cu -o your_kernel.o
+```
+
+## Verification
+```python
+# Compare against flash_attn output
+assert torch.allclose(your_output, flash_output, rtol=1e-2, atol=1e-2)
+```
+
+## Key Optimizations to Study
+
+From optimized_c500_flash_attn.cu:
+1. **MMA-based computation** (not scalar bf16→float→fmaf)
+2. **Shared memory swizzle** for bank conflict avoidance
+3. **Warp shuffle reductions** for online softmax
+4. **Split-KV parallelization** for long sequences
+5. **Affine address calculation** (precompute base, increment by fixed stride)
+
+## Common Mistakes
+
+1. **DON'T use scalar bf16 operations** - Use MMA when possible
+2. **DON'T ignore GQA** - Multiple query heads share same KV head
+3. **DON'T use sequential page access** - Use block_table for actual mapping
+4. **DON'T forget cache_seqlens** - Each batch has different actual length
+
+## Submission
+Your `run_kernel` function will be called with the OJ interface:
+```cpp
+extern "C" void run_kernel(
+    const __nv_bfloat16* q,
+    const __nv_bfloat16* k_cache_paged,
+    const __nv_bfloat16* v_cache_paged,
+    __nv_bfloat16* output,
+    const int32_t* cache_seqlens,
+    const int32_t* block_table,
+    int64_t batch_size,
+    int64_t seqlen_k,
+    int64_t seqlen_q,
+    int64_t num_heads,
+    int64_t num_heads_k,
+    int64_t headdim,
+    int64_t page_block_size,
+    int64_t num_blocks,
+    int64_t causal
+);
 ```
