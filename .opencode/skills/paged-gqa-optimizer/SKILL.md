@@ -248,6 +248,25 @@ Previous students got to 51/63. Here is what held them back (this is feedback, n
 4. **Measurement trap**: They trusted their own benchmark loop timing during iteration, which
    differed from the authoritative cuda_event measurement. Always report BOTH and reconcile.
 
+## ⚠️ MANDATORY REGRESSION RULE (learned from Generation 3's catastrophic failure) ⚠️
+
+Generation 3 tried to fix ONE case (case 9) and destroyed the software-pipelined
+long-sequence path, regressing from 61 to 18.7 points. This is the single worst
+mistake an optimizer can make. FOLLOW THESE RULES:
+
+1. **After EVERY code change, run ALL 12 cases.** A single-case improvement is
+   worthless if it regresses others. Measure before AND after for every case.
+2. **NEVER remove or weaken the latency-hiding software pipeline.** Long sequences
+   (seqlen 4096+) depend on register-prefetch/double-buffering to hide DRAM latency.
+   Removing it for a "simpler" load path destroys performance (case 12: 333->508us).
+3. **Tiny cases (launch floor) are NOT worth pipeline sacrifices.** case 9 is
+   ~16us floor; squeezing it to 13us gains ~10us total. Regressing long seq by
+   500us loses ~40 points. The math never favors the tiny-case micro-opt.
+4. If you change the load path, verify BOTH: (a) case 9 improves, AND (b) case 7,
+   8, 11, 12, 13 (long seq) stay within 5% of before. Otherwise REVERT.
+5. Keep a backup of the working kernel (e.g. cp your_kernel.cu backup.cu) before
+   starting each change so you can always revert.
+
 ## Teacher Feedback - Generation 2 (reached 61/63)
 
 Gen2 fixed the host overhead and hit 61/63. Remaining gaps (measured best_of_3):
