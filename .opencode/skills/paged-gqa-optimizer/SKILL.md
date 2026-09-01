@@ -205,6 +205,49 @@ If your short-seq cases are 0.6-0.8x of flash and the reference is 0.40x, the ga
 most likely: you're launching a combine kernel you could fuse, or your grid is
 oversized for the tiny workload.
 
+### Launch overhead is the hard floor for tiny workloads
+Measured on C500: a SINGLE kernel launch costs ~4us (empty kernel), and a torch
+elementwise op costs ~13us (includes dispatch). For cases with seqlen < ~100 and
+small (batch x heads), total GPU work is only 5-15us - the launch itself dominates.
+
+Implications:
+- On tiny cases you CANNOT go below ~4-12us. The reference hits 12.5us which is
+  essentially launch-floor-limited.
+- The biggest lever is MINIMIZING HOST-SIDE WORK inside run_kernel:
+  - Avoid getenv() / atoi() / file I/O on the hot path (these add CPU us).
+  - Precompute everything possible; a small branch table is faster than strcmp/getenv.
+  - Avoid cudaMalloc/cudaFree on every call - cache buffers and reuse.
+  - Keep the number of kernel launches at 1 for the common short path.
+- Do NOT try to micro-optimize the GPU kernel for tiny cases - the launch floor
+  dominates. Focus there only on: 1 launch, minimal host logic.
+
+### Realistic targets (launch floor aware)
+- seqlen <= ~64: target ~12-16us (launch floor), reference ~12.5us
+- seqlen ~100-200: target ~20-35us
+- long seq: target ~1.0x of flash
+If your tiny cases are at 20us and reference is 12.5us, the gap is host-side
+launch overhead, not the GPU kernel.
+
+## Teacher Feedback from Previous Student Iterations
+
+Previous students got to 51/63. Here is what held them back (this is feedback, not code):
+
+1. **Tiny-case host overhead**: Their run_kernel called getenv("GQA_NS") + atoi + a complex
+   split-decision branch + cudaMalloc/cudaFree check on EVERY call. On cases 2/9 (~12us GPU
+   work), this host CPU work added ~7us of measured latency. The reference run_kernel is:
+   parameter validation, one split-choice function call, then launches. Keep yours lean.
+   Read env/config ONCE (or hardcode the policy), not per call.
+
+2. **Combine launch on medium cases**: They launched main+combine for cases 5/7 where a
+   well-chosen single split would suffice. Fewer launches = less time on medium workloads.
+
+3. **What they did RIGHT (keep doing)**: MMA via the raw intrinsic with reverse-engineered
+   fragments, warp-shuffle softmax stats, register-cached Q, page-aligned adaptive splits,
+   high occupancy (7 blocks/SM), fused single-split path. These are correct directions.
+
+4. **Measurement trap**: They trusted their own benchmark loop timing during iteration, which
+   differed from the authoritative cuda_event measurement. Always report BOTH and reconcile.
+
 ## Environment
 ```bash
 export MACA_PATH=/opt/maca/
