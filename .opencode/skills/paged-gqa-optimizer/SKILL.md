@@ -1,9 +1,9 @@
 ---
-name: paged-gqa-cuda-optimizer-v6
+name: paged-gqa-cuda-optimizer-v13
 description: Guide agent to optimize paged GQA attention using CUDA for MetaX C500
 ---
 
-# Paged GQA Attention Optimization Guide v6
+# Paged GQA Attention Optimization Guide
 
 ## ⚠️ CRITICAL: Independent Implementation Required ⚠️
 
@@ -11,6 +11,21 @@ You MUST write your OWN kernel. Do NOT copy, paste, or structurally mirror any
 existing CUDA implementation file. The evaluation checks that your implementation
 is genuinely your own work. You may look at general reference materials, but the
 final kernel structure and code must be authored by you.
+
+## How to use this guide (IMPORTANT)
+
+This document has two parts:
+1. **METHODOLOGY** (the true teaching content): how to profile, experiment, verify.
+2. **PREVIOUS STUDENTS' EXPLORATION NOTES**: findings that PRIOR students reached by
+   their own experiments. These are NOT teacher answers - they are handoff notes from
+   previous generations, like a team's engineering log. You should:
+   - READ them as hypotheses worth testing, not as truths.
+   - VERIFY them with your own measurements before trusting them.
+   - Feel free to DISAGREE if your experiments show otherwise (one previous student
+     found the "long-seq trap" advice wrong for their kernel structure and was right
+     to trust their own measurements).
+   - The final kernel must be YOUR work. Using prior students' notes to avoid repeating
+     their mistakes is good engineering, not cheating.
 
 ## Your Task
 Optimize paged GQA attention decode kernel for MetaX C500 GPU, starting from the
@@ -81,10 +96,11 @@ Token t of batch b:
 - Process a query-head group together to reuse loaded K/V
 
 ### 3. Parallelization Strategy
-- Long sequences (4096+) need work splitting across SMs
+- Long sequences (4096+) may need work splitting across SMs
 - Consider splitting the KV dimension across parallel waves
-- Small batch + long sequence is the hardest case (case 10, 13)
-- Large batch + short sequence also matters (case 1-5, 9)
+- The OJ cases span batch sizes 1-64 and sequence lengths 2-58966. Analyze how your
+  parallelism strategy behaves across this full range: what works for one extreme may
+  not work for the other. Profile both a tiny case and a huge case.
 
 ### 4. Shared Memory and Bank Conflicts
 - 32 shared memory banks; linear access patterns can conflict
@@ -130,174 +146,115 @@ assert not (diff > 8 * tol).any()              # no 8x outliers
 - A good optimized kernel scores 60-70+
 - Focus on cases where flash is slow (small batch short seq, and batch=1 long seq)
 
-## Empirical Performance Insights (learned from profiling, not answers)
+## METHODOLOGY PART (the actual teaching)
 
-Your kernel's TOTAL score depends on ALL cases. Profile shows:
-- The highest-scoring kernels gain most from SHORT sequences (seqlen < 100): they
-  achieve ~2.5x faster than flash there (flash is inefficient on tiny workloads due
-  to launch overhead and low parallelism).
-- For LONG sequences (seqlen 2048+), flash is already near-optimal. You should aim
-  to match it there, not dramatically beat it. Do NOT spend too long chasing >1x on
-  long sequences - the short-sequence wins matter more for the score.
-- The single most impactful tuning lever is your SPLIT COUNT / work partition:
-  - Too few splits: SMs idle on small-batch long-seq cases.
-  - Too many splits: combine/partial-output traffic dominates on large-batch or
-    short-seq cases (partial write+combine is ~32KiB per split per head).
-  - Fixed split sizes waste performance across heterogeneous cases. Make the split
-    choice ADAPTIVE based on (batch, num_heads_k, seqlen) at runtime.
-  - Page-aligned splits (multiple of page_block_size) let you skip boundary checks.
-  - On small-batch-long-seq, prefer enough splits to fill all SMs but no more.
-  - On large-batch cases, more (batch, head) work already fills SMs -> use few splits.
-- A combined single-kernel path (no separate combine kernel) for short sequences is a
-  clear win: many short cases spend significant time in a second kernel launch.
-- When your KV loads are already vectorized 16B and reuse is good, the next biggest
-  win is usually NOT more compute but reducing redundant work: reading each K/V
-  page exactly once per query-head group that needs it.
+### How to find what to optimize (experiment-driven)
+1. Measure ALL 12 cases first (baseline). Rank them by (flash_time - your_time) / flash_time.
+2. The cases where you are FARTHEST from flash are your opportunities - but compute how
+   many POINTS each case contributes before spending effort (a case at 30us that you can
+   halve is worth ~15us; a case at 300us you can trim 10% is worth ~30us).
+3. For the biggest opportunity: PROFILE the kernel's behavior (occupancy, memory throughput,
+   launch count) with whatever tooling works on this platform, form a hypothesis, test it
+   with ONE variable change, measure all 12 cases before/after, keep or revert.
+4. Keep a log of every change: what you tried, the hypothesis, the result (all 12 cases),
+   whether you kept it. This is your engineering record.
 
-## The "Long Sequence Trap" (most important lesson)
+### How to verify correctness
+```python
+out = your_run_kernel(...)
+ref = flash_attn_with_kvcache(...)
+diff = (out - ref).abs()
+tol = 1.6e-2 + 1.6e-2 * ref.abs()
+assert (diff <= tol).float().mean() >= 0.99   # >=99% match
+assert not (diff > 8 * tol).any()              # no 8x outliers
+```
 
-Profiling the top-scoring kernels shows a CRITICAL pattern you must avoid:
+### How to measure (IMPORTANT - torch.profiler underreports on this GPU)
+```python
+start = torch.cuda.Event(enable_timing=True)
+end = torch.cuda.Event(enable_timing=True)
+torch.cuda.synchronize()
+start.record()
+for _ in range(reps): run()
+end.record()
+torch.cuda.synchronize()
+per_call_us = start.elapsed_time(end) * 1000 / reps
+# For launch-floor cases (very short), take best-of-N runs; single-run numbers are noisy.
+```
 
-**Do NOT aggressively split LONG sequences.** The reference high-scoring kernel runs
-case 8 (seqlen=4096) with num_splits=1 - a single fused pass. It matches flash_attn on
-long sequences (0.93-1.07x) WITHOUT splitting, by being efficient in a single sweep:
+## PREVIOUS STUDENTS' EXPLORATION NOTES (handoff, NOT teacher answers)
 
-- A 64-thread wave that streams pages sequentially with software pipelining
-  (prefetch next page while computing current) can already saturate DRAM bandwidth.
-- Splitting adds: a second kernel launch, partial-output writes to global memory
-  (~32KiB per split), and a combine pass that re-reads everything. For seqlen 4096+
-  this overhead often EXCEEDS the parallelism benefit.
-- Your current failure mode: over-splitting long sequences (tokens_per_split too
-  small), so split/combine overhead dominates and you land at 1.8-1.9x of flash.
+These were discovered by earlier student kernels through their OWN experiments. Treat as
+hypotheses: verify before trusting, and trust your measurements over these notes.
 
-**The correct split strategy (empirically):**
-- seqlen <= ~64: no split, fused single kernel (write output directly, no combine)
-- medium seq (hundreds): modest splits ONLY if (batch x heads) doesn't fill SMs
-- long seq (4096+): prefer num_splits=1 with a well-pipelined single sweep that
-  streams pages; only split if profiling shows SMs are idle
-- Split boundaries page-aligned (multiple of 16)
-- When batch x num_heads_k >= ~80 (fills 104 SMs), ALWAYS use few splits - you
-  already have enough parallelism from the batch dimension
+### Note set 1: where the score comes from
+Prior students observed that TOTAL score depends on ALL cases, and that on SHORT
+sequences (seqlen < 100) flash is inefficient (launch overhead + low parallelism),
+so there is more relative headroom there. On LONG sequences flash is already strong.
+They ALSO observed the opposite caution: over-splitting long sequences made them slower.
+Your job is to CONFIRM which of these matter for YOUR kernel, by measuring.
 
-## Occupancy is what hides latency, not intra-block prefetch
+### Note set 2: "long-sequence trap" - DISPUTED, verify yourself
+A prior student theorized long sequences should NOT be split (a single pipelined sweep).
+But a LATER student measured that for THEIR kernel structure, splitting long sequences
+helped (case 7 optimal ~13 splits, case 8 ~43 splits). Both were right for their own
+kernels. LESSON: split-count is kernel-structure-dependent. Measure your own optimum by
+sweeping split count for each case class. Do not copy either student's conclusion.
 
-Another empirical lesson: on C500, DRAM latency is hidden by having MANY resident
-blocks per SM (high occupancy), NOT by software double-buffering inside a single block.
+### Note set 3: occupancy vs software prefetch (both observed)
+One student found that high occupancy (many resident blocks/SM, ~7 blocks/SM) hid DRAM
+latency better than intra-block register prefetch, and that a heavy prefetch buffer that
+dropped occupancy to 3 blocks/SM was SLOWER. Another student found software pipelining
+essential. These are consistent: you want BOTH enough occupancy AND (for long streams)
+pipelining. Sweep your shared-memory budget vs occupancy and find the balance for each
+case class. A later student who removed the pipeline entirely to gain occupancy on short
+cases catastrophically regressed long cases - so the balance is case-dependent.
 
-- A single 64-thread block only reaches ~750 GB/s. You need ~1000+ blocks total
-  (high occupancy across 104 SMs) to approach >4 TB/s.
-- A register-level prefetch buffer that forces 3 blocks/SM can be SLOWER than a
-  leaner shared-memory staging that allows 7 blocks/SM.
-- Measure your achieved occupancy. If it's low (<4 blocks/SM), reduce per-block
-  shared memory / registers to raise it before adding complex pipelining.
+### Note set 4: launch overhead floor
+Prior students measured a single kernel launch ~4us and a torch elementwise ~13us
+(including dispatch). For tiny workloads, launch overhead can dominate the GPU work.
+They found minimizing host-side work (no getenv/atoi per call, cached buffers, single
+kernel launch when possible) moved tiny cases to the launch floor. VERIFY this matters
+for YOUR kernel by measuring launch count and host time per call.
 
-## Short-sequence launch overhead (another scoring lever)
+### Note set 5: MMA on C500
+A student successfully used the raw `__builtin_mxc_mma_16x16x16bf16` intrinsic after
+finding `load_matrix_sync` crashes on this hardware (toolchain bug). They reverse-engineered
+the fragment layout empirically. This is a research finding worth verifying, not an answer:
+the C500 MMA fragment layout must be derived from the headers and your own experiments.
 
-For tiny workloads (seqlen < ~100, or few (batch x head) pairs), total time is
-DOMINATED by kernel launch overhead (~10-30us on C500) and by a SECOND kernel launch
-(combine). The reference achieves 0.40x of flash on these BECAUSE it minimizes:
+## Handoff: the current best kernel (Generation 2, ~61/63)
 
-- Number of kernel launches (avoid launching a separate combine kernel when possible)
-- Grid/block setup cost (fixed grids, precomputed host-side configuration)
-- Any per-call host-side work (allocations, copies) - do them outside the timed region
+The best student kernel so far is available as a starting point:
+`previous_generation_kernel.cu` (in your workspace). You may use it as your baseline
+and improve it. If you prefer to start from flash_attn again, that is also fine.
 
-If your short-seq cases are 0.6-0.8x of flash and the reference is 0.40x, the gap is
-most likely: you're launching a combine kernel you could fuse, or your grid is
-oversized for the tiny workload.
+### Mistakes prior students made (learn from them, then verify)
+1. Host-side overhead per call (getenv/atoi, complex branches, cudaMalloc each call)
+   added measurable latency on tiny cases. Keep host logic lean; cache buffers.
+2. Launching a separate combine kernel where a single fused launch suffices.
+3. Trusting their own benchmark loop timing over the authoritative cuda_event timing.
+4. The fatal one (see mandatory regression rule): fixing one case, breaking others.
 
-### Launch overhead is the hard floor for tiny workloads
-Measured on C500: a SINGLE kernel launch costs ~4us (empty kernel), and a torch
-elementwise op costs ~13us (includes dispatch). For cases with seqlen < ~100 and
-small (batch x heads), total GPU work is only 5-15us - the launch itself dominates.
+### Known remaining opportunity areas (from gen2's OWN measurements - verify yourself)
+- Small-batch partial pages: a case with batch=32, seqlen=8 has 128 (batch,kv) blocks,
+  each processing 8 valid tokens of a 16-token page. The student loaded the full page
+  and masked; a partial-page specialization (only load valid tokens) is a hypothesis
+  worth testing. NOTE: a later student tried this and broke the long-seq pipeline - so
+  if you test it, apply the regression rule strictly.
+- batch=1 long sequences (seqlen 8192+): the student was 1.0-1.1x of flash there. See
+  if you can tune closer to 1.0x without regressing short cases.
 
-Implications:
-- On tiny cases you CANNOT go below ~4-12us. The reference hits 12.5us which is
-  essentially launch-floor-limited.
-- The biggest lever is MINIMIZING HOST-SIDE WORK inside run_kernel:
-  - Avoid getenv() / atoi() / file I/O on the hot path (these add CPU us).
-  - Precompute everything possible; a small branch table is faster than strcmp/getenv.
-  - Avoid cudaMalloc/cudaFree on every call - cache buffers and reuse.
-  - Keep the number of kernel launches at 1 for the common short path.
-- Do NOT try to micro-optimize the GPU kernel for tiny cases - the launch floor
-  dominates. Focus there only on: 1 launch, minimal host logic.
+## ⚠️ MANDATORY REGRESSION RULE (methodology, non-negotiable) ⚠️
 
-### Realistic targets (launch floor aware)
-- seqlen <= ~64: target ~12-16us (launch floor), reference ~12.5us
-- seqlen ~100-200: target ~20-35us
-- long seq: target ~1.0x of flash
-If your tiny cases are at 20us and reference is 12.5us, the gap is host-side
-launch overhead, not the GPU kernel.
-
-## Teacher Feedback from Previous Student Iterations
-
-Previous students got to 51/63. Here is what held them back (this is feedback, not code):
-
-1. **Tiny-case host overhead**: Their run_kernel called getenv("GQA_NS") + atoi + a complex
-   split-decision branch + cudaMalloc/cudaFree check on EVERY call. On cases 2/9 (~12us GPU
-   work), this host CPU work added ~7us of measured latency. The reference run_kernel is:
-   parameter validation, one split-choice function call, then launches. Keep yours lean.
-   Read env/config ONCE (or hardcode the policy), not per call.
-
-2. **Combine launch on medium cases**: They launched main+combine for cases 5/7 where a
-   well-chosen single split would suffice. Fewer launches = less time on medium workloads.
-
-3. **What they did RIGHT (keep doing)**: MMA via the raw intrinsic with reverse-engineered
-   fragments, warp-shuffle softmax stats, register-cached Q, page-aligned adaptive splits,
-   high occupancy (7 blocks/SM), fused single-split path. These are correct directions.
-
-4. **Measurement trap**: They trusted their own benchmark loop timing during iteration, which
-   differed from the authoritative cuda_event measurement. Always report BOTH and reconcile.
-
-## ⚠️ MANDATORY REGRESSION RULE (learned from Generation 3's catastrophic failure) ⚠️
-
-Generation 3 tried to fix ONE case (case 9) and destroyed the software-pipelined
-long-sequence path, regressing from 61 to 18.7 points. This is the single worst
-mistake an optimizer can make. FOLLOW THESE RULES:
+A prior student's kernel regressed catastrophically (61 -> ~19 score) by fixing ONE
+case and breaking the others. This is the single worst mistake an optimizer can make:
 
 1. **After EVERY code change, run ALL 12 cases.** A single-case improvement is
    worthless if it regresses others. Measure before AND after for every case.
-2. **NEVER remove or weaken the latency-hiding software pipeline.** Long sequences
-   (seqlen 4096+) depend on register-prefetch/double-buffering to hide DRAM latency.
-   Removing it for a "simpler" load path destroys performance (case 12: 333->508us).
-3. **Tiny cases (launch floor) are NOT worth pipeline sacrifices.** case 9 is
-   ~16us floor; squeezing it to 13us gains ~10us total. Regressing long seq by
-   500us loses ~40 points. The math never favors the tiny-case micro-opt.
-4. If you change the load path, verify BOTH: (a) case 9 improves, AND (b) case 7,
-   8, 11, 12, 13 (long seq) stay within 5% of before. Otherwise REVERT.
-5. Keep a backup of the working kernel (e.g. cp your_kernel.cu backup.cu) before
-   starting each change so you can always revert.
-
-## Teacher Feedback - Generation 2 (reached 61/63)
-
-Gen2 fixed the host overhead and hit 61/63. Remaining gaps (measured best_of_3):
-
-| case | shape | gen2 | ref | gap |
-|------|-------|------|-----|-----|
-| 9 | batch=32, seq=8, kv=4 | 22.6us | 12.65us | **MAIN GAP** |
-| 7 | batch=64, seq=2048, kv=4 | 158us | 151us | small |
-| 12 | batch=8, seq=32768, kv=4 | 333us | 307us | small |
-| 13 | batch=1, seq=58966, kv=4 | 173us | 165us | small |
-
-### Case 9 analysis (the one clear opportunity)
-- 128 (batch, kv) blocks, each processes 8 tokens (1 partial page of 16).
-- Gen2 is 0.74x of flash; reference is 0.42x. Gap ~10us.
-- The kernel loads a FULL page (16 tokens) into shared memory but only 8 are valid.
-- Question to investigate: is the per-block work (load 16 tokens, mask to 8, 8 MMA steps)
-  dominating over the launch floor? Compare against an approach that skips the masked
-  half of the page.
-- Note: seq=8 means only 8 of 16 tokens are valid. A "half-page" specialization
-  (only load/store the 8 valid tokens) could cut shared-memory traffic in half.
-- Also consider: does gen2 launch the fused path but still touch unused tail? If the
-  kernel iterates 16-token pages but seqlen is 8, half the loads are wasted.
-
-### What gen2 did right (keep)
-- Pure-arithmetic split policy, no getenv/atoi
-- ns==1 fused path returns before any buffer alloc
-- High occupancy, register-cached Q, warp-shuffle stats
-
-### Next target for gen3
-Close case 9 (22.6 -> ~13us). That alone moves 61 -> ~62.
-If case 12/13 also close (~1.0x), 63 is reachable.
+2. **If a change improves one case but regresses any long-sequence case by >5%,
+   REVERT it.** No single-case win is worth a global regression.
+3. **Keep a backup** (e.g. cp your_kernel.cu backup.cu) before starting each change.
 
 ## Environment
 ```bash
