@@ -1,5 +1,5 @@
 ---
-name: paged-gqa-cuda-optimizer-v13
+name: paged-gqa-cuda-optimizer-v14
 description: Guide agent to optimize paged GQA attention using CUDA for MetaX C500
 ---
 
