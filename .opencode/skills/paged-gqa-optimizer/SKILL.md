@@ -83,42 +83,69 @@ Token t of batch b:
 4. Verify correctness vs flash_attn (rtol=atol=1.6e-2, >=99% match)
 5. **Measure with torch.cuda.Event, NOT torch.profiler**
 
-## Optimization Directions to Explore (research these independently)
+## Optimization Diagnosis Framework (HW-agnostic thinking)
 
-### 1. Memory Access Efficiency
-- Vectorized 16-byte loads (int4) for K/V pages
-- Coalesced access patterns across threads
-- Consider how to minimize address computation overhead
-  (hint: incremental address arithmetic beats per-element indexing)
+These are GENERAL questions any GPU kernel optimizer should ask, in priority order.
+They do not assume this specific GPU or this specific operator's "answer" - they teach
+you how to FIND the answer. Apply them to your own kernel and let the measurements lead.
 
-### 2. GQA Data Reuse
-- 8 query heads share each KV head (ratio 8)
-- Process a query-head group together to reuse loaded K/V
+### A. Where is the time actually going? (always start here)
+Before changing anything, classify each case:
+- **Launch-bound**: total time ≈ fixed cost of launching kernel(s), independent of work.
+  Signature: time barely grows as (batch × heads × seqlen) grows. Optimization lever:
+  reduce launch count, reduce host-side work, increase work per launch.
+- **Memory-bound**: time grows with bytes moved; SM compute units idle waiting.
+  Signature: your measured achieved bandwidth ≈ hardware limit; compute % low.
+  Optimization lever: reduce bytes (reuse, avoid re-reads), improve coalescing,
+  overlap loads with compute (pipeline), raise occupancy to hide latency.
+- **Compute-bound**: time grows with FLOPs; memory is underutilized.
+  Signature: high SM utilization, bandwidth far below limit.
+  Optimization lever: use hardware math units (MMA/tensor cores) more, reduce
+  redundant math, balance instruction mix.
+- **Occupancy/latency-bound**: few warps resident, so stalls dominate.
+  Signature: time doesn't improve with more parallelism in the same kernel.
+  Optimization lever: shrink per-thread/block resources (shared mem, registers) so
+  more blocks fit per SM.
+Classify EACH case, because the same kernel can be launch-bound on tiny cases and
+memory-bound on huge ones.
 
-### 3. Parallelization Strategy
-- Long sequences (4096+) may need work splitting across SMs
-- Consider splitting the KV dimension across parallel waves
-- The OJ cases span batch sizes 1-64 and sequence lengths 2-58966. Analyze how your
-  parallelism strategy behaves across this full range: what works for one extreme may
-  not work for the other. Profile both a tiny case and a huge case.
+### B. For a memory-bound kernel: what is the minimum bytes that MUST be read/written?
+- Each batch's query reads its own K/V pages once. In GQA, multiple query heads share
+  one KV head. Question: does your kernel read each needed byte exactly once per
+  query-head group, or once per query head (redundant)?
+- Question: are you reading any bytes you don't need (padding, masked-out tokens)?
+  Any read of an invalid token is wasted bandwidth.
+- Question: are your loads the widest the hardware supports (128-bit)?
+- Question: is the block_table indirection (a dependent load: load page id, then load
+  that page) serializing your memory stream? How can you overlap the indirection with
+  the data loads?
 
-### 4. Shared Memory and Bank Conflicts
-- 32 shared memory banks; linear access patterns can conflict
-- Explore swizzle/index-transformation patterns
-- Test different layouts empirically
+### C. For a compute-bound kernel: are you using the strongest math unit available?
+- Does the target GPU expose a fused matrix-multiply unit (tensor core / MMA)? If so,
+  does your hot loop use it, or scalar FMA?
+- If you don't know the instruction set, read the vendor's headers/ISA docs and find the
+  matrix multiply primitive. Its fragment layout must be learned from the docs/headers.
+- Question: does your accumulator stay in the widest precision the hardware accumulates
+  in, converting only at boundaries?
 
-### 5. Compute Kernel
-- Explore mctlass BF16 MMA primitives (cute/MACA headers)
-- Compare MMA vs scalar compute for your workload
-- FP32 accumulation, bf16 only at boundaries
+### D. For a latency/occupancy-bound kernel: what is eating the SM?
+- Per-block shared memory, registers, and threads all limit how many blocks run per SM.
+  Compute your theoretical max blocks/SM for each, and find which one binds you.
+- If shared memory binds: shrink the tile, or avoid staging what can stay in registers.
+- If registers bind: reduce per-thread state, or restructure to need less.
+- Compare a lean config (more blocks) vs a rich config (bigger tile, fewer blocks) by
+  experiment - the winner is hardware-specific and surprising (both directions have been
+  observed on this project).
 
-### 6. Online Softmax
-- Numerically stable streaming softmax for long sequences
-- FP32 state (running max, running sum) updated incrementally
+### E. General engineering habits that transfer anywhere
+- Change ONE variable at a time; measure all cases before/after; keep or revert.
+- Keep an engineering log: hypothesis, experiment, result. It makes you faster at
+  knowing what NOT to try again.
+- If a case is at the launch floor, do not waste time on its GPU kernel - spend effort
+  where the time actually is.
 
-## Benchmarking Methodology (IMPORTANT)
+## How to measure (IMPORTANT - torch.profiler underreports on this GPU)
 ```python
-# CORRECT: use cuda events
 start = torch.cuda.Event(enable_timing=True)
 end = torch.cuda.Event(enable_timing=True)
 torch.cuda.synchronize()
@@ -127,11 +154,10 @@ for _ in range(reps): run()
 end.record()
 torch.cuda.synchronize()
 per_call_us = start.elapsed_time(end) * 1000 / reps
-
-# WRONG: torch.profiler (underreports ~400x on C500)
+# For launch-floor cases (very short), take best-of-N runs; single-run numbers are noisy.
 ```
 
-## Verification
+## How to verify correctness
 ```python
 out = your_run_kernel(...)
 ref = flash_attn_with_kvcache(...)
@@ -144,11 +170,8 @@ assert not (diff > 8 * tol).any()              # no 8x outliers
 ## Scoring Context
 - Baseline flash_attn = 50 points
 - A good optimized kernel scores 60-70+
-- Focus on cases where flash is slow (small batch short seq, and batch=1 long seq)
 
-## METHODOLOGY PART (the actual teaching)
-
-### How to find what to optimize (experiment-driven)
+## How to find what to optimize (experiment-driven)
 1. Measure ALL 12 cases first (baseline). Rank them by (flash_time - your_time) / flash_time.
 2. The cases where you are FARTHEST from flash are your opportunities - but compute how
    many POINTS each case contributes before spending effort (a case at 30us that you can
@@ -158,29 +181,6 @@ assert not (diff > 8 * tol).any()              # no 8x outliers
    with ONE variable change, measure all 12 cases before/after, keep or revert.
 4. Keep a log of every change: what you tried, the hypothesis, the result (all 12 cases),
    whether you kept it. This is your engineering record.
-
-### How to verify correctness
-```python
-out = your_run_kernel(...)
-ref = flash_attn_with_kvcache(...)
-diff = (out - ref).abs()
-tol = 1.6e-2 + 1.6e-2 * ref.abs()
-assert (diff <= tol).float().mean() >= 0.99   # >=99% match
-assert not (diff > 8 * tol).any()              # no 8x outliers
-```
-
-### How to measure (IMPORTANT - torch.profiler underreports on this GPU)
-```python
-start = torch.cuda.Event(enable_timing=True)
-end = torch.cuda.Event(enable_timing=True)
-torch.cuda.synchronize()
-start.record()
-for _ in range(reps): run()
-end.record()
-torch.cuda.synchronize()
-per_call_us = start.elapsed_time(end) * 1000 / reps
-# For launch-floor cases (very short), take best-of-N runs; single-run numbers are noisy.
-```
 
 ## PREVIOUS STUDENTS' EXPLORATION NOTES (handoff, NOT teacher answers)
 
