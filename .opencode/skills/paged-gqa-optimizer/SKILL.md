@@ -154,6 +154,31 @@ Your kernel's TOTAL score depends on ALL cases. Profile shows:
   win is usually NOT more compute but reducing redundant work: reading each K/V
   page exactly once per query-head group that needs it.
 
+## The "Long Sequence Trap" (most important lesson)
+
+Profiling the top-scoring kernels shows a CRITICAL pattern you must avoid:
+
+**Do NOT aggressively split LONG sequences.** The reference high-scoring kernel runs
+case 8 (seqlen=4096) with num_splits=1 - a single fused pass. It matches flash_attn on
+long sequences (0.93-1.07x) WITHOUT splitting, by being efficient in a single sweep:
+
+- A 64-thread wave that streams pages sequentially with software pipelining
+  (prefetch next page while computing current) can already saturate DRAM bandwidth.
+- Splitting adds: a second kernel launch, partial-output writes to global memory
+  (~32KiB per split), and a combine pass that re-reads everything. For seqlen 4096+
+  this overhead often EXCEEDS the parallelism benefit.
+- Your current failure mode: over-splitting long sequences (tokens_per_split too
+  small), so split/combine overhead dominates and you land at 1.8-1.9x of flash.
+
+**The correct split strategy (empirically):**
+- seqlen <= ~64: no split, fused single kernel (write output directly, no combine)
+- medium seq (hundreds): modest splits ONLY if (batch x heads) doesn't fill SMs
+- long seq (4096+): prefer num_splits=1 with a well-pipelined single sweep that
+  streams pages; only split if profiling shows SMs are idle
+- Split boundaries page-aligned (multiple of 16)
+- When batch x num_heads_k >= ~80 (fills 104 SMs), ALWAYS use few splits - you
+  already have enough parallelism from the batch dimension
+
 ## Environment
 ```bash
 export MACA_PATH=/opt/maca/
