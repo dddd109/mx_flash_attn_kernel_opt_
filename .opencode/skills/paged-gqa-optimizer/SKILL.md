@@ -248,6 +248,38 @@ Previous students got to 51/63. Here is what held them back (this is feedback, n
 4. **Measurement trap**: They trusted their own benchmark loop timing during iteration, which
    differed from the authoritative cuda_event measurement. Always report BOTH and reconcile.
 
+## Teacher Feedback - Generation 2 (reached 61/63)
+
+Gen2 fixed the host overhead and hit 61/63. Remaining gaps (measured best_of_3):
+
+| case | shape | gen2 | ref | gap |
+|------|-------|------|-----|-----|
+| 9 | batch=32, seq=8, kv=4 | 22.6us | 12.65us | **MAIN GAP** |
+| 7 | batch=64, seq=2048, kv=4 | 158us | 151us | small |
+| 12 | batch=8, seq=32768, kv=4 | 333us | 307us | small |
+| 13 | batch=1, seq=58966, kv=4 | 173us | 165us | small |
+
+### Case 9 analysis (the one clear opportunity)
+- 128 (batch, kv) blocks, each processes 8 tokens (1 partial page of 16).
+- Gen2 is 0.74x of flash; reference is 0.42x. Gap ~10us.
+- The kernel loads a FULL page (16 tokens) into shared memory but only 8 are valid.
+- Question to investigate: is the per-block work (load 16 tokens, mask to 8, 8 MMA steps)
+  dominating over the launch floor? Compare against an approach that skips the masked
+  half of the page.
+- Note: seq=8 means only 8 of 16 tokens are valid. A "half-page" specialization
+  (only load/store the 8 valid tokens) could cut shared-memory traffic in half.
+- Also consider: does gen2 launch the fused path but still touch unused tail? If the
+  kernel iterates 16-token pages but seqlen is 8, half the loads are wasted.
+
+### What gen2 did right (keep)
+- Pure-arithmetic split policy, no getenv/atoi
+- ns==1 fused path returns before any buffer alloc
+- High occupancy, register-cached Q, warp-shuffle stats
+
+### Next target for gen3
+Close case 9 (22.6 -> ~13us). That alone moves 61 -> ~62.
+If case 12/13 also close (~1.0x), 63 is reachable.
+
 ## Environment
 ```bash
 export MACA_PATH=/opt/maca/
