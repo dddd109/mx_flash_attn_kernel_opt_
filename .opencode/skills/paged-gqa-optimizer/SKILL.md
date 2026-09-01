@@ -179,6 +179,32 @@ long sequences (0.93-1.07x) WITHOUT splitting, by being efficient in a single sw
 - When batch x num_heads_k >= ~80 (fills 104 SMs), ALWAYS use few splits - you
   already have enough parallelism from the batch dimension
 
+## Occupancy is what hides latency, not intra-block prefetch
+
+Another empirical lesson: on C500, DRAM latency is hidden by having MANY resident
+blocks per SM (high occupancy), NOT by software double-buffering inside a single block.
+
+- A single 64-thread block only reaches ~750 GB/s. You need ~1000+ blocks total
+  (high occupancy across 104 SMs) to approach >4 TB/s.
+- A register-level prefetch buffer that forces 3 blocks/SM can be SLOWER than a
+  leaner shared-memory staging that allows 7 blocks/SM.
+- Measure your achieved occupancy. If it's low (<4 blocks/SM), reduce per-block
+  shared memory / registers to raise it before adding complex pipelining.
+
+## Short-sequence launch overhead (another scoring lever)
+
+For tiny workloads (seqlen < ~100, or few (batch x head) pairs), total time is
+DOMINATED by kernel launch overhead (~10-30us on C500) and by a SECOND kernel launch
+(combine). The reference achieves 0.40x of flash on these BECAUSE it minimizes:
+
+- Number of kernel launches (avoid launching a separate combine kernel when possible)
+- Grid/block setup cost (fixed grids, precomputed host-side configuration)
+- Any per-call host-side work (allocations, copies) - do them outside the timed region
+
+If your short-seq cases are 0.6-0.8x of flash and the reference is 0.40x, the gap is
+most likely: you're launching a combine kernel you could fuse, or your grid is
+oversized for the tiny workload.
+
 ## Environment
 ```bash
 export MACA_PATH=/opt/maca/
