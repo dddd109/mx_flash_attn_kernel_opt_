@@ -67,29 +67,41 @@ breaking others - do not repeat this.
 
 ## PRIOR STUDENTS' NOTES (verify yourself)
 
-### Gen2 kernel (~51/63) - what held it back
-A prior student kernel (call it "gen2", score ~51) was tuned on a WRONG case table
-(nkv=4 everywhere). On the REAL cases it fails specifically on num_heads_k=8 cases
-(9, 11, 12): it OVER-SPLITS them, launching 5000-7000 blocks (49-66 waves) instead of
-~1000-2000. It produces ns*batch*nkv*gqa total blocks but its per-block work is small.
-The 62-scoring kernel caps splits: batch32→8, batch16→16, batch8→32 splits max.
-LESSON: total blocks should be roughly 1-4 waves of SMs (104 SMs), NOT 50+ waves.
-Sweep split count; find where time stops improving. More splits ≠ faster after a point.
+### Gen2/Gen6 kernels (~51-53) - the real bottleneck (VERIFY THIS YOURSELF)
+A prior kernel (gen6, ~53) is slow on num_heads_k=8 large cases (9/11/12). Teacher
+experiments showed:
+- Forcing FEWER splits (to mimic the 62-kernel's choice) made it WORSE (case 12:
+  574 -> 852us). So "restrain splits" is NOT the fix.
+- The 62-kernel reaches case 12 at 494us using only ~13 splits. gen6 needs ~170
+  splits to get 574us. Same data, same GPU.
 
-### gen2's strengths (keep these)
-MMA via raw intrinsic, register-cached Q, warp-shuffle softmax, fused ns==1 path,
-lean host logic (no getenv/atoi per call).
+DIAGNOSIS QUESTION for you: why can gen6's SINGLE block not sweep a long page run
+efficiently? What does a block do per page? If it is:
+  [stage page into smem] -> [__syncthreads] -> [compute] -> [next page]
+then the __syncthreads + load latency is serialized per page (~2048 pages in case 12).
+Investigate whether the per-page serial chain (load latency exposed at every barrier)
+is the stall. Ideas to test WITHOUT being told the answer:
+- Can the next page's loads be issued BEFORE the current page's compute, using
+  SEPARATE shared-memory buffers that alternate (double-buffer), so load of page i+1
+  overlaps compute of page i? (Prior student tried this with a big register buffer and
+  LOST occupancy - the tradeoff is real. Test small.)
+- Can the block keep MORE pages resident to hide latency?
+- What is the block's achieved memory throughput vs the theoretical? If far below,
+  it's latency-bound in the sweep, not bandwidth-bound.
+Measure, don't guess. If double-buffering drops occupancy too far, try a shallower
+pipeline (e.g. prefetch just the block_table page ids, or half a page ahead).
+
+### gen6's strengths (keep)
+MMA raw intrinsic, register-cached Q, warp-shuffle softmax, fused ns==1 short path,
+adaptive split that helped cases 9/11.
 
 ### What a 62-scoring kernel does differently
-- Restrained split counts (1-4 waves of blocks total).
-- On nkv=8 cases (gqa=4), it still fills MMA rows efficiently.
-- Never reads block_table padding; respects cache_seqlens exactly.
-- Beats flash on short cases (0.4x) and matches on long (0.85-1.1x).
-  Note: even the 62-kernel is SLOWER than flash on case 10/13/14 (batch=1, long) -
-  those are hard for everyone.
+- Its SINGLE block sweeps long page runs near bandwidth limit (that's why few splits
+  suffice). It beats flash on short cases (~0.4x) and ~matches on long (0.85-1.1x).
+- Even the 62-kernel is SLOWER than flash on case 10/13/14 (batch=1 long) - hard for all.
 
 ### Case 1 special
-All cache_seqlens = 1 (every sequence is a single token). Edge case, must be exact.
+All cache_seqlens = 1 (single token). Edge case, exact required.
 
 ## Environment
 export MACA_PATH=/opt/maca/
