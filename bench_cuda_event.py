@@ -7,20 +7,28 @@ Usage: python3 bench_cuda_event.py flash <case_num> <reps>
 import sys, torch, math, ctypes
 from flash_attn import flash_attn_with_kvcache
 
+# Official case table (user-confirmed, from xpuoj contest 11 problem 1)
+# (case, batch, seqlen_k, num_heads_k, type, iters)
+# warmup=3 for all; type: edge for 1-2, perf for 3-14
 CASES = {
-    1: (4, 8, 4),
-    2: (4, 2, 8),
-    3: (16, 17, 8),
-    4: (64, 64, 4),
-    5: (16, 141, 8),
-    7: (64, 2048, 4),
-    8: (16, 4096, 4),
-    9: (32, 8, 4),
-    10: (1, 8192, 4),
-    11: (16, 12251, 4),
-    12: (8, 32768, 4),
-    13: (1, 58966, 4),
+    1: (4, 2, 4),     # edge, iters=100
+    2: (4, 2, 8),     # edge, iters=100
+    3: (16, 17, 4),   # perf, iters=100
+    4: (16, 64, 8),   # perf, iters=50
+    5: (16, 141, 4),  # perf, iters=50
+    6: (16, 362, 8),  # perf, iters=50
+    7: (64, 2048, 4), # perf, iters=12
+    8: (16, 4096, 4), # perf, iters=25
+    9: (32, 4096, 8), # perf, iters=12
+    10: (1, 8192, 4), # perf, iters=25
+    11: (16, 12251, 8), # perf, iters=12
+    12: (8, 32768, 8),  # perf, iters=12
+    13: (1, 58966, 4),  # perf, iters=25
+    14: (1, 61519, 4),  # perf, iters=25
 }
+
+# iters per case (from official table)
+CASE_ITERS = {1:100, 2:100, 3:100, 4:50, 5:50, 6:50, 7:12, 8:25, 9:12, 10:25, 11:12, 12:12, 13:25, 14:25}
 
 def main():
     which = sys.argv[1]
@@ -34,9 +42,16 @@ def main():
     blocks_per_batch = math.ceil(seqlen_k / page_block_size)
     num_blocks = batch_size * blocks_per_batch
     torch.manual_seed(42)
-    cache_seqlens = torch.randint(1, seqlen_k+1, (batch_size,), dtype=torch.int32, device='cuda')
-    cache_seqlens[0] = seqlen_k
-    if batch_size > 1: cache_seqlens[1] = 1
+    # cache_seqlens generation per official semantics:
+    # - every case: >=1 sequence pinned at capacity (seqlen_k)
+    # - batch>1: also >=1 sequence at length 1
+    # - case 1 special: actual cache_seqlens = 1 (all sequences length 1)
+    if case_num == 1:
+        cache_seqlens = torch.full((batch_size,), 1, dtype=torch.int32, device='cuda')
+    else:
+        cache_seqlens = torch.randint(1, seqlen_k+1, (batch_size,), dtype=torch.int32, device='cuda')
+        cache_seqlens[0] = seqlen_k
+        if batch_size > 1: cache_seqlens[1] = 1
     q = torch.randn(batch_size, 1, num_heads, headdim, device='cuda', dtype=torch.bfloat16)
     k = torch.randn(num_blocks, page_block_size, num_heads_k, headdim, device='cuda', dtype=torch.bfloat16)
     v = torch.randn(num_blocks, page_block_size, num_heads_k, headdim, device='cuda', dtype=torch.bfloat16)
