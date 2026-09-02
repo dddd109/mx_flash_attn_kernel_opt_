@@ -103,6 +103,31 @@ adaptive split that helped cases 9/11.
 ### Case 1 special
 All cache_seqlens = 1 (single token). Edge case, exact required.
 
+## Newest diagnosis (gen7 measured - verify and ACT on it)
+
+A prior kernel reaches only **3 blocks/SM (~9% occupancy)** on long cases. Its shared
+memory footprint (~8.7KB/block) is what limits how many blocks fit per SM. With so few
+resident warps, a long page sweep is LATENCY-bound: each page's DRAM load (~800ns) has
+almost no co-resident warps to hide it behind the per-page barrier.
+
+Experiments already done (do not repeat):
+- Double-buffer prefetch: hides sweep-length sensitivity but DROPS bandwidth to
+  0.82 TB/s (worse). Not the answer alone.
+- Removing smem padding: catastrophic bank conflicts. Padding is load-bearing.
+- __syncwarp instead of __syncthreads: neutral.
+- launch_bounds / register caps: neutral (smem binds, not registers).
+- Finer splits: helps cases 9/11 a little; case 12 is flat beyond ~170.
+
+So the lever is **occupancy via per-block footprint**. Test these (measure case 12,
+and re-check all 14):
+- If one block currently stages ONE page and serves ONE kv-head's group of query heads,
+  could it stage ONE page and serve TWO kv-head groups? That halves the smem per
+  query-head group and doubles useful work per block load.
+- Or: shrink the staged tile so 6-8 blocks fit per SM.
+- Target: get case 12 from ~573us toward the ~494us a strong kernel achieves, and
+  raise blocks/SM from 3 toward 6+.
+- Use the occupancy API (or compute smem*blocks<=64KB) to check blocks/SM after each change.
+
 ## Environment
 export MACA_PATH=/opt/maca/
 export PATH=$MACA_PATH/mxgpu_llvm/bin:$MACA_PATH/bin:$PATH
