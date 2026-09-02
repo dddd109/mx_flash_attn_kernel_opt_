@@ -128,6 +128,41 @@ and re-check all 14):
   raise blocks/SM from 3 toward 6+.
 - Use the occupancy API (or compute smem*blocks<=64KB) to check blocks/SM after each change.
 
+## Newest diagnosis (gen8 measured - verify and ACT on it)
+
+Prior attempts (all measured, all failed to break 53 on the nkv=8 long cases):
+- Packing different kv_heads into one MMA: STRUCTURALLY impossible. The 16x16x16 MMA
+  has ONE shared B operand (K column-block); all 16 M-rows share one kv_head's K.
+- Two kv_heads per block: their K slices differ, nothing shareable; smem doubled -> 3
+  blocks/SM -> worse.
+- Removing the K smem tile to raise occupancy: per-thread 8B fragment loads break
+  coalescing -> ~80% worse.
+- Split tuning: cases 9/11 gained a little; case 12 is flat beyond ns~170.
+- Double-buffer: hides sweep sensitivity but caps bandwidth below the fine-split case.
+
+Measured facts for case 12 (batch=8, seq=32768, nkv=8):
+- gen6 achieves ~0.94 TB/s; the reference kernel ~1.09 TB/s; device copy peak ~1.18 TB/s.
+- So the gap is LATENCY (memory-level parallelism), not peak bandwidth, not occupancy.
+- gen6 runs 7 blocks/SM already. More blocks didn't help.
+
+## The open question for you (long-sweep MLP)
+
+The reference streams a long page run at ~1.09 TB/s with fewer resident warps than
+gen6. That means its THREADS have more independent loads in flight (memory-level
+parallelism), OR it issues loads far ahead of use. gen6's per-page chain is:
+  [issue page-i loads] -> [wait all] -> [compute] -> [issue page i+1] ...
+which serializes: while computing page i, NO page i+1 loads are in flight.
+
+Test hypotheses (measure case 12, re-check all 14):
+1. Start issuing page i+1's K/V loads BEFORE computing page i, WITHOUT waiting, into a
+   second small buffer. Keep buffers SMALL (see occupancy). This is classic
+   double-buffering BUT the key is to keep per-buffer smem small enough that blocks/SM
+   doesn't collapse - previous double-buffer attempts used big register buffers and lost.
+2. Or: within one page, can each thread issue its K-loads for MULTIPLE pages at once
+   (deeper per-thread MLP) rather than one page at a time?
+3. Measure achieved TB/s on case 12 as you go; the target is ~1.09 TB/s.
+This likely needs a careful rewrite of the inner loop. Budget generously.
+
 ## Environment
 export MACA_PATH=/opt/maca/
 export PATH=$MACA_PATH/mxgpu_llvm/bin:$MACA_PATH/bin:$PATH
