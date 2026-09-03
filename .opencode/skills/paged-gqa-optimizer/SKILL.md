@@ -69,12 +69,28 @@ Two families of layouts avoid bank conflicts:
     land on different banks. Cheap, works, but each access is to a padded layout.
 (b) Swizzled atom layout: XOR some bits of the linear index into other bits (e.g.
     bits 6-8 into 3-5). This is what makes a 16x16 read spread across all 32 banks.
-Both are valid. If you transpose data on store (to make reads vectorized), that transpose
-cost is paid every page on a long sweep - consider whether a read-side swizzle avoids it.
-MEASURED: on a kernel whose PV read is a contiguous 2-word load from transposed data,
-switching to a strided gather (even with padding) was 60% SLOWER. The transpose was
-load-bearing for that read pattern. Do not remove a transpose without redesigning the
-read to stay vectorized OR provably conflict-free.
+
+### E4b. THE #1 HIDDEN COST: transposing V (or K) at load time with SCALAR stores
+BIGGEST measured win (score 54 -> 74). If your load path transposes a matrix into
+shared memory by scattering SCALAR elements (e.g. 8 separate stores per 16-byte
+vector), you pay ~8x the shared-memory store instructions of a vectorized store, on
+EVERY page of a long sweep (case 12: 2048 pages -> ~65k extra scalar stores/thread).
+
+Fix: keep the matrix in its NATURAL (global-memory) layout and write each 16-byte
+vector with ONE store (same as the other matrix). Make the MMA read work on the
+natural layout by:
+- reading the few elements it needs (the PV read needs 4 tokens at one dim; read them
+  as separate uint16 and pack into the operand words in the SAME order the transposed
+  layout produced), AND
+- choosing row padding so those strided reads do NOT bank-conflict. Concretely for a
+  [token][dim] array with head=128: row stride in words must make 16 consecutive
+  tokens land on 16 different banks. stride_words ≡ 4 mod 32 works (VPAD=8 halves =
+  68 words). VERIFY by matching output to the reference bit-for-bit on a tiny case.
+
+CRITICAL LESSON from earlier failure: removing the transpose but reading with an
+unpadded layout (bank conflicts) OR getting the operand packing order wrong makes it
+60% SLOWER or incorrect. The win requires BOTH vectorized store AND conflict-free
+packed read. A plain "gather" without the padding/swizzle is not enough.
 
 ### E5. Softmax: express everything relative to the merged max (one rescale)
 Online softmax can be written two ways:
