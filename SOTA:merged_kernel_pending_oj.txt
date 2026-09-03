@@ -1,0 +1,14 @@
+# 当前最佳候选: submission_merged.cu (待 OJ 实测确认分数)
+合并了 Agent A (case13) + B (case7/12) + C (case6) + case14 的 split 调优。
+
+本地关键改善 (us):
+  case 6:  34 -> 29   (ns 8->5)
+  case 7:  234 -> 224 (ns 10->5, kv8 wu512)
+  case 12: 467 -> 440 (ns 170->60, kv8 wu64)
+  case 13: 221 -> 192 (ns 64->90, batch1 kv8)
+  case 14: 154 -> 144 (ns->160, batch1 kv4)
+本地总 ~1643us (gen11b 提交时 ~1755)
+预估 OJ ~67-70 分 (gen11b=64.57)
+
+文件: submission_merged.cu (干净, 无 env override), libmerged.so
+正确性: 14/14 PASS
