@@ -166,36 +166,49 @@ This likely needs a careful rewrite of the inner loop. Budget generously.
 ## HINTS (teacher-allowed explicit directions - still YOUR job to implement)
 
 Read your kernel's hot page loop and remove work that repeats on EVERY page when it
-only matters for the LAST page:
+only matters for the LAST page.
 
-H1. **Boundary masking is hot-path waste.** Your loop recomputes per-page `ntok`
-    (=16 for all but the last page) and guards QK/V with `tok >= ntok` masks. On a
-    2048-page sweep, 2047 pages are FULL (all 16 tokens valid) and need NO mask. Only
-    the final partial page needs masking. Split the loop: a fast, UNMASKED loop over
-    full pages, then handle the last partial page once. This removes per-page branches
-    and predicate computation from the steady state. (This was the single largest win
-    in the reference's history - compile-time full/tail specialization.)
+### H5 (TEACHER PRIORITY #1): eliminate the per-page V transpose
+Your kernel transposes V into dim-major shared memory AT LOAD TIME:
+for each 16-byte vector loaded you scatter 8 SCALAR stores (`Vt[dim+e][tok] = vv[e]`).
+That is 32 scalar shared-memory scatter-stores per thread per page, paid on EVERY page
+of a long sweep (2048 pages in case 12 => 65536 scatter stores/thread just to transpose).
 
-H2. **Per-page address re-derivation.** Each stage recomputes
-    `pid=block_table[...]; base=pid*PAGE*KVSTR + kv*HEAD`. For a full-page run the page
-    stride is CONSTANT. Hoist what you can: load the whole split's page-id row once, or
-    maintain an incrementing pointer instead of re-multiplying each page.
+Why is it transposed? So the PV MMA can read 4 consecutive tokens of a fixed dim as one
+vectorized word. But transposing on every store is expensive.
 
-H3. **The tail page is rare.** Do not let its handling (masking, partial tokens) dictate
-    the steady-state loop. Specialize: full pages take the fast path; the single final
-    partial page (per sequence) takes a separate slower path.
+The alternative (what a strong kernel does): **keep V in its natural token-major layout**
+(store the loaded 16-byte vector with ONE vector store, like you already do for K), and
+make the PV read use an INDEX TRANSFORMATION so that reading 4 tokens of a fixed dim
+does not bank-conflict. Concretely: if V stays `V_b[tok][dim]` (no +2 pad needed if you
+swizzle), then the PV B-fragment for dim d and tokens t0..t3 is a gather of 4 values
+`V_b[t0][d], V_b[t1][d], V_b[t2][d], V_b[t3][d]` (they are strided, NOT contiguous) -
+pack them yourself into the 2 operand words. To avoid bank conflicts on that gather,
+store V under a swizzled index so that (token,d) and (token+1,d) map to different banks.
+A classic choice: XOR some token bits into the dim index (e.g. bank = ((d ^ (t<<k))/2)%32).
+The KEY win: you remove the per-page transpose entirely; the only added cost is address
+arithmetic (an XOR) on the PV read, which happens far fewer times than the transpose stores.
 
-H4. **Look at what the 64 threads actually do per page.** 256 element-loads (16 tok x 16
-    dim-blocks) mapped as lane + i*64. Is the mapping such that each thread's 4 loads
-    (i=0..3) are to STRIDED locations (tok jumps by 4)? Consecutive iterations of the
-    unrolled i-loop touch tokens tok, tok+4, tok+8, tok+12 - is that the best layout for
-    coalescing AND for smem bank conflicts on the MMA read? Try alternative lane->(tok,dim)
-    mappings and measure.
+Measure the impact: your achieved TB/s on case 12 (currently ~0.94) should move toward
+~1.09.
 
-Prior student results on these (so you don't repeat): pure block_table row prefetch was
-neutral (HW prefetch covers it); removing the K smem tile broke coalescing. But NONE of
-them tried H1 (separating full-page fast loop from tail) on the CURRENT kernel. That is
-untested and is your best lead.
+### H6 (TEACHER PRIORITY #2): simplify the softmax rescale
+Your per-page online-softmax computes TWO exponentials (alpha AND beta) and multiplies
+the P fragment by beta before PV. A numerically equivalent form needs only ONE rescale:
+compute the merged max first (new_max = max(row_max, page_max)), then express every
+weight relative to new_max directly. Then the running accumulator rescale uses one
+factor, and P needs no beta multiplication. This removes one __expf and one multiply
+per element per page. On 2048 pages that is real savings.
+
+### H7 (lower priority): tail page load
+Your tail path loads the full 16-token page then masks. A strong kernel predicates the
+tail load so it never reads tokens beyond the sequence. Since the tail is 1 page per
+sequence this is minor, but keeps reads from going out of bounds.
+
+Prior student results (don't repeat): pure block_table prefetch neutral; removing K smem
+broke coalescing; H1 (full/tail split of the loop) was worth only ~1% because case 12 is
+DRAM-latency bound, not mask bound. NONE of them tried H5 (eliminating the V transpose),
+which attacks the load path directly.
 
 ## Environment
 export MACA_PATH=/opt/maca/
