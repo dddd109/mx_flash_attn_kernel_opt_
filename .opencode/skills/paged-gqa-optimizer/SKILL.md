@@ -163,6 +163,40 @@ Test hypotheses (measure case 12, re-check all 14):
 3. Measure achieved TB/s on case 12 as you go; the target is ~1.09 TB/s.
 This likely needs a careful rewrite of the inner loop. Budget generously.
 
+## HINTS (teacher-allowed explicit directions - still YOUR job to implement)
+
+Read your kernel's hot page loop and remove work that repeats on EVERY page when it
+only matters for the LAST page:
+
+H1. **Boundary masking is hot-path waste.** Your loop recomputes per-page `ntok`
+    (=16 for all but the last page) and guards QK/V with `tok >= ntok` masks. On a
+    2048-page sweep, 2047 pages are FULL (all 16 tokens valid) and need NO mask. Only
+    the final partial page needs masking. Split the loop: a fast, UNMASKED loop over
+    full pages, then handle the last partial page once. This removes per-page branches
+    and predicate computation from the steady state. (This was the single largest win
+    in the reference's history - compile-time full/tail specialization.)
+
+H2. **Per-page address re-derivation.** Each stage recomputes
+    `pid=block_table[...]; base=pid*PAGE*KVSTR + kv*HEAD`. For a full-page run the page
+    stride is CONSTANT. Hoist what you can: load the whole split's page-id row once, or
+    maintain an incrementing pointer instead of re-multiplying each page.
+
+H3. **The tail page is rare.** Do not let its handling (masking, partial tokens) dictate
+    the steady-state loop. Specialize: full pages take the fast path; the single final
+    partial page (per sequence) takes a separate slower path.
+
+H4. **Look at what the 64 threads actually do per page.** 256 element-loads (16 tok x 16
+    dim-blocks) mapped as lane + i*64. Is the mapping such that each thread's 4 loads
+    (i=0..3) are to STRIDED locations (tok jumps by 4)? Consecutive iterations of the
+    unrolled i-loop touch tokens tok, tok+4, tok+8, tok+12 - is that the best layout for
+    coalescing AND for smem bank conflicts on the MMA read? Try alternative lane->(tok,dim)
+    mappings and measure.
+
+Prior student results on these (so you don't repeat): pure block_table row prefetch was
+neutral (HW prefetch covers it); removing the K smem tile broke coalescing. But NONE of
+them tried H1 (separating full-page fast loop from tail) on the CURRENT kernel. That is
+untested and is your best lead.
+
 ## Environment
 export MACA_PATH=/opt/maca/
 export PATH=$MACA_PATH/mxgpu_llvm/bin:$MACA_PATH/bin:$PATH
