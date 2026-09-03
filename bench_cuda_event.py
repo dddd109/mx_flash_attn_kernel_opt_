@@ -7,24 +7,24 @@ Usage: python3 bench_cuda_event.py flash <case_num> <reps>
 import sys, torch, math, ctypes
 from flash_attn import flash_attn_with_kvcache
 
-# REAL case table (confirmed from SPJ output of xpuoj submissions)
-# (case, batch, seqlen_k_cap, num_heads_k)
-# type: edge for 1-3, perf for 4-14
+# Official case table (user-confirmed, from xpuoj contest 11 problem 1)
+# (case, batch, seqlen_k, num_heads_k, type, iters)
+# warmup=3 for all; type: edge for 1-2, perf for 3-14
 CASES = {
-    1: (1, 1, 4),      # edge: batch=1, cap=1
-    2: (4, 2, 8),      # edge
-    3: (16, 17, 4),    # edge
-    4: (64, 64, 8),
-    5: (16, 141, 4),
-    6: (16, 362, 8),
-    7: (64, 2048, 8),
-    8: (16, 4096, 4),
-    9: (32, 4096, 8),
-    10: (1, 8192, 4),
-    11: (16, 12251, 4),
-    12: (8, 32768, 8),
-    13: (1, 58966, 8),
-    14: (1, 61519, 4),
+    1: (4, 2, 4),     # edge, iters=100
+    2: (4, 2, 8),     # edge, iters=100
+    3: (16, 17, 4),   # perf, iters=100
+    4: (16, 64, 8),   # perf, iters=50
+    5: (16, 141, 4),  # perf, iters=50
+    6: (16, 362, 8),  # perf, iters=50
+    7: (64, 2048, 4), # perf, iters=12
+    8: (16, 4096, 4), # perf, iters=25
+    9: (32, 4096, 8), # perf, iters=12
+    10: (1, 8192, 4), # perf, iters=25
+    11: (16, 12251, 8), # perf, iters=12
+    12: (8, 32768, 8),  # perf, iters=12
+    13: (1, 58966, 4),  # perf, iters=25
+    14: (1, 61519, 4),  # perf, iters=25
 }
 
 # iters per case (from official table)
