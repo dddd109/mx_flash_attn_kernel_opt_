@@ -45,3 +45,15 @@ V into dim-major on store, keep it as-loaded (token-major) and make the PV MMA r
 use a swizzled index (XOR token bits into dim). This removes ~32 scalar smem stores per
 thread per page from the critical load path. Requires rethinking the PV B-fragment
 gather but that's the reference's approach.
+
+## UPDATE after teacher experiments (H1/H5/H6)
+Single-porting reference techniques into gen6 structure:
+- H1 full/tail loop split: ~1% (safe, keep)
+- H5 remove V transpose: FAILED -60% (gen6's transpose enables vectorized PV reads)
+- H6 merged-max softmax (no beta): ~1% (safe, keep)
+- split sweep: no gain beyond gen6 optimum
+CONCLUSION: gen6 (53) vs reference (62.21) on DRAM-bound case 12 is 572 vs 494us.
+The reference is a COHERENT whole layout. Incremental porting of one technique fails.
+The only viable path to ~62 is a block-internal REWRITE that adopts the coherent
+pattern: affine lane mapping + swizzled K atom layout + swizzled V reads + merged-max
+softmax + page-balanced device splits TOGETHER, in one pass.
