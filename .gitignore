@@ -1,0 +1,16 @@
+# Build artifacts
+*.o
+*.so
+*.a
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Databases / logs
+.*.db
+*.log
+
+# Tooling
+node_modules/
