@@ -151,3 +151,40 @@ where launch overhead dominates (launch floor ~4-12us).
 ## Handoff
 The best student kernel so far scores ~54 (agent_gen10_kernel.cu). You may start from it
 or from flash_attn. Applying E1-E11 well is how you go further.
+
+## VERIFIED 64.57-POINT CONFIGURATION (a student reached this on the real OJ)
+This is a working configuration distilled from a real OJ submission (64.57 pts, beats
+the 62.21 reference). Treat it as a validated starting point to IMPROVE, not copy code.
+
+Architecture that scores ~64 on the real OJ:
+1. 64 threads/block = one MMA wave. Grid = (ns, batch*num_heads_k). Each block handles
+   one (batch, kv_head) split over `gqa` query heads (gqa = 32/num_heads_k).
+2. Q: 8 tiles x 2 regs cached once (tile t reads dims t*16 + grp*4 .. +3, grp=lane>>4).
+3. K smem: K_b[16][HEAD+2] padded row-major (row stride 130 halves = 65 words, odd).
+4. V smem: **token-major V_b[16][HEAD+VPAD] with VPAD=8** (stride 136 halves = 68 words,
+   ≡4 mod 32 so 16 consecutive tokens hit 16 different banks). Stored with ONE uint4
+   store per 8 elements - NO transpose. THIS IS THE KEY WIN (see E4b).
+5. PV read: for output dim d, gather 4 tokens t0..t3 (t0=grp*4) as 2x uint16 LDS each
+   and pack: word0 = V[t0][d] | V[t0+1][d]<<16, word1 = V[t2][d] | V[t3][d]<<16.
+   (Must match the transposed layout's packing exactly.)
+6. Online softmax: merged-max, single alpha rescale (E5). Tail page masked.
+7. Split policy (arithmetic, no env): pages<=4 ->1; pages<=16 && wu>=32 ->3;
+   wu<=8 -> 64 if pages<=1024 else (batch==1 && kv==8 && pages>2000 ? 64 : 128);
+   else mult=(kv==8&&wu>=64&&pages>=200)?30:20, ns=round(mult*sqrt(pages*wu)/wu).
+   THEN tokens_per_split = ceil(pages/ns)*16, recompute ns.
+8. Fused single path when ns==1 (write output directly). Combine kernel otherwise,
+   one thread per 2 dims, online pass, skip empty splits.
+9. Compile: plain mxcc, NO mctlass/cute include needed (bare intrinsic works).
+
+Real-OJ per-case profile of this config (targets to beat):
+case13 (batch1 kv8 seq58966) is the weakest: ~1.03x flash. The kv8 large cases
+(7:1.25x, 9:1.37x, 12:1.40x) and case 6 (1.61x) have headroom. Edge 1-3 ~5.4x are
+near launch floor.
+
+Priority improvement directions (untested by this config):
+- case 13 (batch=1, kv=8): only 8 (batch,kv) units -> underfilled SMs. Try ns sweep
+  again near 64, or 2 kv_heads per block (gqa=8 total, 8 MMA rows used of 16) to
+  halve block count and double rows per block. smem stays ~same if you load one page
+  and read both kv heads' slices (they are different 128-col slices of the page).
+- Larger blocks (128 threads, 2 waves) sharing one staged page for kv8 cases.
+- Tune the mult/nv heuristics per (batch, kv) class with the real case table.
