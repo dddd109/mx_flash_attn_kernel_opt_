@@ -101,3 +101,17 @@ NEXT BEST DIRECTION: profile-driven — measure MMA pipe duty vs issue to know i
 instructions are the hard wall or if issue/latency within MMA chains dominates; then try
 (a) reducing instructions around MMA (operand setup), (b) 2 blocks/SM interleave via
 smaller smem, (c) accepting ~390us MMA and overlapping the 38us memory perfectly.
+
+## 2026-09-04 (case4 OJ regression 0.020->0.048: root-caused)
+- ov (submission_ov.cu) got 65.7 on OJ: cases 5/7-14 all improved as predicted BUT case4
+  regressed 20->48us (2.4x, score 75->55), killing the total.
+- NOT reproducible locally under ANY cache_seqlens distribution (tailheavy/pageheavy/
+  full/one/rand/skew all show ov FASTER than nomax).
+- ROOT CAUSE (code audit): ov's TAIL path (partial page) was missing the memory barrier
+  that nomax had (__syncthreads) after stage_page and before the MMA reads. 64-thread
+  block IS one warp (warp_size=64 confirmed via torch), so __syncwarp() is the correct
+  replacement — but it was MISSING in the tail. case4 (batch64, ns=1 fused, mostly
+  1-page blocks) exercises the tail path more than any other case -> the race/serialization
+  hit case4 hardest. Fix: add __syncwarp() after stage_page in the tail path.
+- ov_safe = ov + per-page l-shuffle (revert the risky deferral) + tail syncwarp fix.
+  Local SUM 1460us vs nomax 1515 (-3.6%), vs buggy ov 1454 (equal). RESUBMIT ov_safe.
