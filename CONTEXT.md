@@ -98,3 +98,11 @@ CONTEXT/DECISIONS/SKILL immediately (they drifted out of sync).
 - 待办: (1) 验证/修复 case1/2 的 1us 回退(可能噪声, 但两次提交都 0.007) (2) 大 case 主攻:
   case7(0.213/56) case11(0.187/57) case13(0.171/58) case14(0.120/58) 等仍有空间。
 - 方向: occupancy (r5 指向的未试杠杆) / 大 case load-latency。本地==OJ on 大 case, 可信。
+
+## 深夜推进 checkpoint 2 (bsm closed, still 67.07)
+- bsm/cp.async async-copy CONFIRMED broken on mxcc (dup/wrong data; earlier probe "passes" were
+  verification artifacts reading buf[lane] instead of buf[lane*4]). CLOSED as a lever.
+- SOTA stands 67.07 (ov_safe). Big cases near DRAM peak at high split; batch1 (13/14) latency-bound.
+- What's left to try (no async): (1) reduce combine/partial overhead at high ns, (2) better
+  ns/tps per-case using OJ ground-truth tk (not local), (3) 2-page-per-CTA to halve launches,
+  (4) revisit whether ANY case's OJ tk has an exploitable distribution quirk.
