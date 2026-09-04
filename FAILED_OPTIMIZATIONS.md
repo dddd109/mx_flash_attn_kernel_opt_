@@ -130,3 +130,17 @@ All optimization attempts below **FAILED** to improve performance. The baseline 
   garbage => async data never lands correctly at real-kernel geometry. Not an MMA-consume issue.
 - Suspect: bsm smem-addressing has a limited offset/large-buffer quirk on this toolchain. Would
   need deep ISA archaeology to crack; parked (67.07 SOTA stands, async is uncertain payoff).
+
+## 2026-09-04 (overnight, CONFIRMED): async bsm is BROKEN on this toolchain - NOT a viable lever
+- Definitive tests (bsm_test2, bsm_off, bsm_matrix, bsm_scale, canary, can4): the
+  __builtin_mxc_ldg_b128_bsm async-copy engine does NOT reliably deliver 16B chunks to
+  requested smem offsets. Even the "working" probe was a verification artifact: checking
+  buf[lane*4] (the real written addresses) shows data DUPLICATED/wrong beyond the first
+  2-3 quads (out[8] incorrectly = out[4]).
+- The "Saddr conflict" compiler warning appears whenever the load count/smem pattern
+  exceeds tiny cases -> the bsm addressing is miscompiled/limited on mxcc 3.7.1.5.
+- Earlier "probes pass 100%" (r5/r6 agents) used flawed readback that only checked the
+  FIRST element of each quad or unlucky coincidence. Re-verification proves them broken.
+- => cp.async/bsm MLP is NOT the reference's lever, or not reproducible here. CLOSED.
+- SOTA stands: submission_ov_safe.cu = 67.07 OJ. Remaining gains must come from
+  non-async structural ideas.
