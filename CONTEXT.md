@@ -67,3 +67,11 @@ double as "skill teaching verification" for the contest.
 - Local bench = bench_all.py (single process, official iters, flash vs ours).
 - Baseline = submission_agentG_v2.cu compiled to build/agentG_v2.so (ALL PASS, 1610us sum).
 - Bench/full-verify python files were single-process-corrected; bench_cuda_event.py fine.
+
+## PIVOTAL: kernel is MMA-throughput bound (probe-verified 2026-09-04)
+- case12 probes (ns=60): full 427us | no V-MMA 254us | no MMA 38us.
+- => ~390us of 427us is MMA execution. Memory+softmax floor = 38us.
+- Not memory/latency/occupancy bound. Row-utilization waste: kv8 4/16 rows (25%),
+  kv4 8/16 rows (50%). Fix = fill MMA rows with multiple kv_heads per block
+  (page has all kv slices). Target: kv8 4kv/block, kv4 2kv/block.
+- This is the CURRENT priority exploration (would attack cases 7/8/9/10/11/12/13/14).
