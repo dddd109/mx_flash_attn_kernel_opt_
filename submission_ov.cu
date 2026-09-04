@@ -172,6 +172,7 @@ __global__ void paged_gqa_mma_kernel(
         int ntok = rem;
         int pid = block_table[b * blocks_per_batch + pg];
         stage_page(pg, pid, K_b, V_b);
+        __syncwarp();
 
         __nv_bfloat16 (*Kb)[HEAD+4] = K_b;
         __nv_bfloat16 (*Vb)[VSTRIDE] = V_b;
