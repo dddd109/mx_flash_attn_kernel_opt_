@@ -215,6 +215,12 @@ Rough OJ-score proxy: score ~ +1pt per ~50us of local-SUM reduction from 65.14.
 - Split micro-tuning to local random cache_seqlens: noise; OJ distribution differs.
 - Per-page accumulator rescale deferral / batching: moot once the max is removed (E5c)
   — there is no rescale at all anymore.
+- Register-prefetch across the page barrier (keep 1 page in smem, LDG next page's
+  vectors into regs during current MMA, staggered 4-at-a-time to limit live regs):
+  v1-v4 ALL regressed ~2x (3100+us vs 1519), even after nomax freed registers. The
+  mxcc toolchain spills regardless. Per-page smem+barrier structure stands.
+- Exhaustive per-case split sweeps (case 7/10/13/14, many ns values): the arithmetic
+  split policy is ALREADY optimal on the local randn distribution. Do not re-tune.
 
 ## What the current best (65.14) does - reproduce these exactly
 1. 64 threads/block = one MMA wave. Grid = (ns, batch*num_heads_k). Each block handles
