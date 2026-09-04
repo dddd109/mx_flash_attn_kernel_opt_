@@ -94,3 +94,11 @@ D. 若 OJ 显示某 case 分布敏感(像之前 case11), 针对性调 tps/ns。
 - => async-copy (bsm) is THE remaining lever for case 13/14 (~70us potential each, score 58->~70).
 - Reproduced the async failure in real kernel (match 0.0-0.12). Working probes exist (r5_overlap
   bsm_sem*.cu). Next: bisect why bsm-fed smem fails MMA reads in real kernel while probes pass.
+
+## case 11 ns experiment candidate (needs OJ A/B, NOT locally resolvable)
+- case11 (b16 kv4 12251): local-rand optimal ns=22 (149us); OJ=187us means OJ dist is LONGER
+  than local-rand. Under long distributions (half/full), ns=11 beats ns=22 by ~9%
+  (231 vs 254us half-dist). CONFLICT: changing policy to 11 makes local bench WORSE (195us)
+  but likely helps OJ. => candidate OJ experiment: set case11 ns=11, submit, compare.
+- case9 (b32 kv8): ns=11 optimal in both local and half-dist. No change.
+- Do NOT fold this into the committed kernel until OJ confirms (would regress local gate).
