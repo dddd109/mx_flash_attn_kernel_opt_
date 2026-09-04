@@ -1,9 +1,10 @@
 # MX FlashAttention Kernel Optimization - 项目导航
 
-## 📌 新 session 必读（按顺序，只需这 3 个）
-1. **`HANDOFF_NEXT_SESSION.md`** ← 最重要！当前处境、分数、教训、下一步（无 GPU 状态）
-2. **`task.md`** ← OJ 赛题描述（接口、case 表、评测）
-3. **`OJ_BASELINE.md`** ← 各版本 OJ 实测分数对照
+## 📌 新 session 必读（按顺序，只需这 4 个）
+1. **`WORKFLOW.md`** ← 详细操作流程（无 GPU 循环：改→编译→提交→分析）
+2. **`HANDOFF_NEXT_SESSION.md`** ← 当前处境、分数、教训、下一步
+3. **`task.md`** ← OJ 赛题描述（接口、case 表、评测）
+4. **`OJ_BASELINE.md`** ← 各版本 OJ 实测分数对照
 
 ## 若要继续优化 kernel（读这些）
 - `.opencode/skills/paged-gqa-optimizer/SKILL.md` ← 教学 skill（含已验证的 64 分配置 + 11 条经验）
