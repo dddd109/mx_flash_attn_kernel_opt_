@@ -31,3 +31,796 @@
 2026-08-29 15:30:00,639 INFO matplotlib.font_manager: Generating new fontManager, this may take some time...
 2026-08-29 15:30:00,639 DEBUG matplotlib.font_manager: font search path [PosixPath('/tmp/_MEIKbjfjt/matplotlib/mpl-data/fonts/ttf'), PosixPath('/tmp/_MEIKbjfjt/matplotlib/mpl-data/fonts/afm'), PosixPath('/tmp/_MEIKbjfjt/matplotlib/mpl-data/fonts/pdfcorefonts')]
 2026-08-29 15:30:01,017 DEBUG matplotlib.pyplot: Loaded backend agg version unknown.
+2026-09-04 12:09:21,197 DEBUG matplotlib: (private) matplotlib data path: /tmp/_MEIztGnlb/matplotlib/mpl-data
+2026-09-04 12:09:21,197 DEBUG matplotlib: matplotlib data path: /tmp/_MEIztGnlb/matplotlib/mpl-data
+2026-09-04 12:09:21,202 DEBUG matplotlib: CONFIGDIR=/tmp/tmpm9tsa289
+2026-09-04 12:09:21,204 DEBUG matplotlib: matplotlib version 3.3.4
+2026-09-04 12:09:21,204 DEBUG matplotlib: interactive is False
+2026-09-04 12:09:21,205 DEBUG matplotlib: platform is linux
+2026-09-04 12:09:21,205 DEBUG matplotlib: loaded modules: ['builtins', 'sys', '_frozen_importlib', '_imp', '_warnings', '_thread', '_weakref', '_frozen_importlib_external', '_io', 'marshal', 'posix', 'zipimport', 'encodings', 'codecs', '_codecs', 'encodings.aliases', 'encodings.utf_8', '_signal', '__main__', 'encodings.latin_1', 'io', 'abc', '_weakrefset', '_bootlocale', '_locale', 'struct', '_struct', 'pyimod01_os_path', 'pyimod02_archive', 'zlib', 'pyimod03_importers', 'pyimod04_ctypes', 'os', 'errno', 'stat', '_stat', 'posixpath', 'genericpath', 'os.path', '_collections_abc', 'ctypes', '_ctypes', 'ctypes._endian', 'pkgutil', 'collections', 'operator', '_operator', 'keyword', 'heapq', '_heapq', 'itertools', 'reprlib', '_collections', 'functools', '_functools', 'types', 'collections.abc', 'weakref', 'importlib', 'importlib._bootstrap', 'importlib._bootstrap_external', 'warnings', 'importlib.util', 'importlib.abc', 'importlib.machinery', 'contextlib', 'inspect', 'ast', '_ast', 'dis', 'opcode', '_opcode', 'enum', 'linecache', 'tokenize', 're', 'sre_compile', '_sre', 'sre_parse', 'sre_constants', 'copyreg', 'token', 'pathlib', 'fnmatch', 'ntpath', 'urllib', 'urllib.parse', 'pkg_resources', 'time', 'zipfile', 'shutil', 'bz2', '_compression', 'threading', 'traceback', '_bz2', 'lzma', '_lzma', 'pwd', 'grp', 'binascii', 'platform', 'subprocess', 'signal', '_posixsubprocess', 'select', 'selectors', 'math', 'plistlib', 'datetime', '_datetime', 'xml', 'xml.parsers', 'xml.parsers.expat', 'pyexpat.errors', 'pyexpat.model', 'pyexpat', 'xml.parsers.expat.model', 'xml.parsers.expat.errors', 'email', 'email.parser', 'email.feedparser', 'email.errors', 'email._policybase', 'email.header', 'email.quoprimime', 'string', '_string', 'email.base64mime', 'base64', 'email.charset', 'email.encoders', 'quopri', 'email.utils', 'random', 'hashlib', '_hashlib', '_blake2', '_sha3', 'bisect', '_bisect', '_random', 'socket', '_socket', 'email._parseaddr', 'calendar', 'locale', 'tempfile', 'textwrap', 'pkg_resources.extern', 'pkg_resources._vendor', 'pkg_resources._vendor.appdirs', 'pkg_resources.extern.appdirs', 'pkg_resources._vendor.packaging', 'pkg_resources._vendor.packaging.__about__', 'pkg_resources.extern.packaging', 'pkg_resources.extern.packaging.version', 'typing', 'typing.io', 'typing.re', 'pkg_resources.extern.packaging._structures', 'pkg_resources.extern.packaging.specifiers', 'pkg_resources.extern.packaging.utils', 'pkg_resources.extern.packaging.tags', 'logging', 'atexit', 'sysconfig', 'pkg_resources._vendor.packaging._manylinux', 'pkg_resources._vendor.packaging._musllinux', 'pkg_resources.extern.packaging.requirements', 'pkg_resources._vendor.pyparsing', 'copy', 'pprint', 'pkg_resources.extern.pyparsing', 'pkg_resources.extern.packaging.markers', 'multiprocessing', 'multiprocessing.context', 'multiprocessing.process', 'multiprocessing.reduction', 'pickle', '_compat_pickle', '_pickle', 'array', '__mp_main__', 'multiprocessing.spawn', 'runpy', 'multiprocessing.util', 'multiprocessing.popen_fork', 'multiprocessing.popen_spawn_posix', 'concurrent', 'concurrent.futures', 'concurrent.futures._base', 'concurrent.futures.process', 'queue', 'multiprocessing.connection', '_multiprocessing', 'concurrent.futures.thread', 'argparse', 'gettext', 'common', 'common.api_common', 'json', 'json.decoder', 'json.scanner', '_json', 'json.encoder', 'paramiko', 'paramiko._version', 'paramiko.transport', 'cryptography', 'cryptography.__about__', 'cryptography.utils', 'cryptography.hazmat', 'cryptography.hazmat.backends', 'cryptography.hazmat.primitives', 'cryptography.hazmat.primitives.ciphers', 'cryptography.hazmat.primitives._cipheralgorithm', 'cryptography.hazmat.primitives.ciphers.base', 'cryptography.exceptions', 'cryptography.hazmat.primitives.ciphers.modes', 'cryptography.hazmat.primitives.ciphers.algorithms', 'paramiko.util', 'paramiko.common', 'paramiko.config', 'getpass', 'termios', 'shlex', 'paramiko.ssh_exception', 'paramiko.auth_handler', 'paramiko.message', 'paramiko.server', 'paramiko.ssh_gss', 'paramiko.channel', 'paramiko.file', 'paramiko.buffered_pipe', 'paramiko.pipe', 'paramiko.compress', 'paramiko.dsskey', 'cryptography.hazmat.primitives.hashes', 'cryptography.hazmat.primitives.serialization', 'cryptography.hazmat.primitives._serialization', 'cryptography.hazmat.primitives.serialization.base', 'cryptography.hazmat.primitives.asymmetric', 'cryptography.hazmat.primitives.asymmetric.dh', 'cryptography.hazmat.primitives.asymmetric.types', 'cryptography.hazmat.primitives.asymmetric.dsa', 'cryptography.hazmat.primitives.asymmetric.utils', 'cryptography.hazmat.bindings', '_cffi_backend', '_openssl.lib', '_openssl', 'cryptography.hazmat.bindings._rust', 'cryptography.hazmat.primitives.asymmetric.ec', 'cryptography.hazmat._oid', 'cryptography.hazmat.primitives.asymmetric.ed448', 'cryptography.hazmat.primitives.asymmetric.ed25519', 'cryptography.hazmat.primitives.asymmetric.rsa', 'cryptography.hazmat.primitives._asymmetric', 'cryptography.hazmat.primitives.asymmetric.x448', 'cryptography.hazmat.primitives.asymmetric.x25519', 'cryptography.hazmat.primitives.serialization.ssh', 'cryptography.hazmat.primitives.asymmetric.padding', 'bcrypt', '__future__', 'hmac', 'bcrypt.__about__', 'bcrypt._bcrypt', 'paramiko.ber', 'paramiko.sftp', 'paramiko.pkey', 'paramiko.ed25519key', 'nacl', 'nacl.signing', 'nacl.bindings', 'nacl.bindings.crypto_aead', 'nacl.exceptions', '_sodium.lib', '_sodium', 'nacl._sodium', 'nacl.bindings.crypto_box', 'nacl.bindings.crypto_core', 'nacl.bindings.crypto_generichash', 'nacl.bindings.crypto_hash', 'nacl.bindings.crypto_kx', 'nacl.bindings.crypto_pwhash', 'nacl.bindings.crypto_scalarmult', 'nacl.bindings.crypto_secretbox', 'nacl.bindings.crypto_secretstream', 'nacl.bindings.crypto_shorthash', 'nacl.bindings.crypto_sign', 'nacl.bindings.randombytes', 'nacl.bindings.sodium_core', 'nacl.bindings.utils', 'nacl.encoding', 'nacl.public', 'nacl.utils', 'paramiko.kex_curve25519', 'cryptography.hazmat.primitives.constant_time', 'paramiko.kex_gex', 'paramiko.kex_group1', 'paramiko.kex_group14', 'paramiko.kex_group16', 'paramiko.kex_ecdh_nist', 'paramiko.kex_gss', 'paramiko.packet', 'paramiko.primes', 'paramiko.rsakey', 'paramiko.ecdsakey', 'paramiko.sftp_client', 'paramiko.sftp_attr', 'paramiko.sftp_file', 'cryptography.hazmat.backends.openssl', 'cryptography.hazmat.backends.openssl.backend', 'cryptography.x509', 'cryptography.x509.certificate_transparency', 'cryptography.x509.base', 'cryptography.x509.extensions', 'ipaddress', 'cryptography.x509.general_name', 'cryptography.x509.name', 'cryptography.x509.oid', 'cryptography.hazmat.backends.openssl.aead', 'cryptography.hazmat.backends.openssl.ciphers', 'cryptography.hazmat.backends.openssl.cmac', 'cryptography.hazmat.backends.openssl.dh', 'cryptography.hazmat.backends.openssl.dsa', 'cryptography.hazmat.backends.openssl.utils', 'cryptography.hazmat.backends.openssl.ec', 'cryptography.hazmat.backends.openssl.ed448', 'cryptography.hazmat.backends.openssl.ed25519', 'cryptography.hazmat.backends.openssl.hashes', 'cryptography.hazmat.backends.openssl.hmac', 'cryptography.hazmat.backends.openssl.poly1305', 'cryptography.hazmat.backends.openssl.rsa', 'cryptography.hazmat.backends.openssl.x448', 'cryptography.hazmat.bindings.openssl', 'cryptography.hazmat.bindings.openssl.binding', 'cryptography.hazmat.bindings.openssl._conditional', 'cryptography.hazmat.primitives.kdf', 'cryptography.hazmat.primitives.kdf.scrypt', 'cryptography.hazmat.primitives.serialization.pkcs12', 'paramiko.client', 'paramiko.agent', 'paramiko.hostkeys', 'paramiko.auth_strategy', 'paramiko.sftp_server', 'paramiko.sftp_si', 'paramiko.sftp_handle', 'paramiko.proxy', 'sshtunnel', 'socketserver', 'utils', 'utils.exceptions', 'utils.logging', 'utils.complier', 'utils.rawdata_elements', 'common.pc_piechart', 'matplotlib', 'distutils', 'distutils.version', 'matplotlib.cbook', 'gzip', 'numpy', 'numpy._globals', 'numpy.__config__', 'numpy.version', 'numpy._distributor_init', 'numpy.core', 'numpy.core.multiarray', 'numpy.core.overrides', 'numpy.core._multiarray_umath', 'numpy.compat', 'numpy.compat._inspect', 'numpy.compat.py3k', 'numpy.core.umath', 'numpy.core.numerictypes', 'numbers', 'numpy.core._string_helpers', 'numpy.core._type_aliases', 'numpy.core._dtype', 'numpy.core.numeric', 'numpy.core.shape_base', 'numpy.core._asarray', 'numpy.core.fromnumeric', 'numpy.core._methods', 'numpy.core._exceptions', 'numpy.core._ufunc_config', 'numpy.core.arrayprint', 'numpy.core.defchararray', 'numpy.core.records', 'numpy.core.memmap', 'numpy.core.function_base', 'numpy.core.machar', 'numpy.core.getlimits', 'numpy.core.einsumfunc', 'numpy.core._add_newdocs', 'numpy.core._multiarray_tests', 'numpy.core._dtype_ctypes', 'numpy.core._internal', 'numpy._pytesttester', 'numpy.lib', 'numpy.lib.mixins', 'numpy.lib.scimath', 'numpy.lib.type_check', 'numpy.lib.ufunclike', 'numpy.lib.index_tricks', 'numpy.matrixlib', 'numpy.matrixlib.defmatrix', 'numpy.linalg', 'numpy.linalg.linalg', 'numpy.lib.twodim_base', 'numpy.linalg.lapack_lite', 'numpy.linalg._umath_linalg', 'numpy.lib.function_base', 'numpy.lib.histograms', 'numpy.lib.stride_tricks', 'numpy.lib.nanfunctions', 'numpy.lib.shape_base', 'numpy.lib.polynomial', 'numpy.lib.utils', 'numpy.lib.arraysetops', 'numpy.lib.npyio', 'numpy.lib.format', 'numpy.lib._datasource', 'numpy.lib._iotools', 'numpy.lib.financial', 'decimal', '_decimal', 'numpy.lib.arrayterator', 'numpy.lib.arraypad', 'numpy.lib._version', 'numpy.fft', 'numpy.fft._pocketfft', 'numpy.fft._pocketfft_internal', 'numpy.fft.helper', 'numpy.polynomial', 'numpy.polynomial.polynomial', 'numpy.polynomial.polyutils', 'numpy.polynomial._polybase', 'numpy.polynomial.chebyshev', 'numpy.polynomial.legendre', 'numpy.polynomial.hermite', 'numpy.polynomial.hermite_e', 'numpy.polynomial.laguerre', 'numpy.random', 'numpy.random._pickle', 'numpy.random.mtrand', 'cython_runtime', 'numpy.random.bit_generator', '_cython_0_29_21', 'numpy.random._common', 'secrets', 'numpy.random._bounded_integers', 'numpy.random._mt19937', 'numpy.random._philox', 'numpy.random._pcg64', 'numpy.random._sfc64', 'numpy.random._generator', 'numpy.ctypeslib', 'numpy.ma', 'numpy.ma.core', 'numpy.ma.extras', 'numpy.testing', 'unittest', 'unittest.result', 'unittest.util', 'unittest.case', 'difflib', 'unittest.suite', 'unittest.loader', 'unittest.main', 'unittest.runner', 'unittest.signals', 'numpy.testing._private', 'numpy.testing._private.utils', 'gc', 'numpy.testing._private.decorators', 'numpy.testing._private.nosetester', 'matplotlib.cbook.deprecation', 'matplotlib.rcsetup', 'matplotlib.animation', 'uuid', 'ctypes.util', 'matplotlib._animation_data', 'matplotlib.fontconfig_pattern', 'pyparsing', 'pyparsing.util', 'pyparsing.exceptions', 'pyparsing.unicode', 'pyparsing.actions', 'pyparsing.core', 'pyparsing.results', 'pyparsing.helpers', 'html', 'html.entities', 'pyparsing.testing', 'pyparsing.common', 'matplotlib.colors', 'matplotlib.docstring', 'matplotlib._color_data', 'cycler', 'matplotlib._version', 'matplotlib.ft2font', 'dateutil', 'dateutil._version', 'kiwisolver']
+2026-09-04 12:09:21,247 DEBUG matplotlib: CACHEDIR=/tmp/tmpm9tsa289
+2026-09-04 12:09:21,247 INFO matplotlib.font_manager: Generating new fontManager, this may take some time...
+2026-09-04 12:09:21,247 DEBUG matplotlib.font_manager: font search path [PosixPath('/tmp/_MEIztGnlb/matplotlib/mpl-data/fonts/ttf'), PosixPath('/tmp/_MEIztGnlb/matplotlib/mpl-data/fonts/afm'), PosixPath('/tmp/_MEIztGnlb/matplotlib/mpl-data/fonts/pdfcorefonts')]
+2026-09-04 12:09:21,623 DEBUG matplotlib.pyplot: Loaded backend agg version unknown.
+2026-09-04 12:09:22,767 INFO common.api_common: load json file /opt/mcProfiler-ubuntu18.04/config/ce_statistics.pcd error, so try to decrypt: Expecting value: line 1 column 1 (char 0)
+2026-09-04 12:09:22,770 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:22,771 INFO common.api_common: load json file /opt/mcProfiler-ubuntu18.04/config/compute_workload.pcd error, so try to decrypt: Expecting value: line 1 column 1 (char 0)
+2026-09-04 12:09:22,771 INFO common.api_common: load json file /opt/mcProfiler-ubuntu18.04/config/gpu_throughput_statistics.pcd error, so try to decrypt: Expecting value: line 1 column 1 (char 0)
+2026-09-04 12:09:22,772 INFO common.api_common: load json file /opt/mcProfiler-ubuntu18.04/config/instruction_statistics.pcd error, so try to decrypt: Expecting value: line 1 column 1 (char 0)
+2026-09-04 12:09:22,772 INFO common.api_common: load json file /opt/mcProfiler-ubuntu18.04/config/isu_statistics.pcd error, so try to decrypt: Expecting value: line 1 column 1 (char 0)
+2026-09-04 12:09:22,773 INFO common.api_common: load json file /opt/mcProfiler-ubuntu18.04/config/memory_statistics.pcd error, so try to decrypt: Expecting value: line 1 column 1 (char 0)
+2026-09-04 12:09:22,774 INFO common.api_common: load json file /opt/mcProfiler-ubuntu18.04/config/occupancy.pcd error, so try to decrypt: Expecting value: line 1 column 1 (char 0)
+2026-09-04 12:09:22,775 INFO common.api_common: load json file /opt/mcProfiler-ubuntu18.04/config/summary.pcd error, so try to decrypt: Expecting value: line 1 column 1 (char 0)
+2026-09-04 12:09:22,776 INFO common.api_common: load json file /opt/mcProfiler-ubuntu18.04/config/workgroup_memory.pcd error, so try to decrypt: Expecting value: line 1 column 1 (char 0)
+2026-09-04 12:09:22,786 INFO werkzeug:  * Running on http://127.0.0.1:50123/ (Press CTRL+C to quit)
+2026-09-04 12:09:23,273 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:23,275 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:23] "GET / HTTP/1.1" 200 -
+2026-09-04 12:09:23,276 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET / HTTP/1.1" 200 29
+2026-09-04 12:09:23,277 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:23,280 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:23] "GET /show_metrics HTTP/1.1" 200 -
+2026-09-04 12:09:23,280 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /show_metrics HTTP/1.1" 200 1976
+2026-09-04 12:09:23,282 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:23,298 INFO phttp.http_server: start a new perf exec thread
+2026-09-04 12:09:23,298 INFO phttp.server_backend: start perf_exec
+2026-09-04 12:09:23,298 INFO phttp.http_server: new exec 8b2e20ee-800f-4256-8fbd-f83bed36ff74:('/opt/conda/bin/python3 prof_target.py build/nomax.so 12', 'c12', ['WORKGROUPS', 'WAVES', 'Average Wave life cycles', 'instruction per cycle', 'instruction throughput', 'instruction throughput efficiency', 'AP active cycles', 'AP MTE Duty ratio', 'AP STE Duty ratio', 'AP MMA Duty ratio', 'VLS Duty ratio', 'L2C Duty ratio', 'Compute Instructions Cycles Rate', 'DPC Computing cycles comparison', 'Instructions Comparison', 'ISU stall cycles layout', 'instruction number', 'instructions per AP', 'Global Read Instructions', 'Global Write Instructions', 'Global Atomic Instructions', 'Private Read Instructions', 'Private Write Instructions', 'Constant Read Instructions', 'Constant Read SL1 Instructions', 'Constant Read L2 Instructions', 'Constant SL1 Hit Rate', 'VL1 Read Instructions', 'VL1 Write Instructions', 'VL1 Atomic Instructions', 'VL1 Hit Rate', 'L2C Read Instructions', 'L2C Write Instructions', 'L2C Atomic Instructions', 'L2C Hit Rate', 'Total Atomic Instructions', 'Dnoc Read Req', 'Dnoc Write Req', 'Global Memory Read bytes', 'Global Memory Write bytes', 'Memory Data Flow Chart', 'Dnoc Read Average Latency', 'Dnoc Read Latency Histogram', 'VL1 partition stall cycles layout', 'Achieved waves', 'Dispatched waves', 'Total Instructions', 'Compute Instructions', 'Memory Instructions', 'Total Cycles', 'Memory Access per Second', 'Average AP busy cycles', 'AP busy Duty', 'Compute Instructions busy Duty', 'RoofLine', 'load instructions', 'store instructions', 'atomic instructions', 'total instructions', 'average latency per load instruction', 'average latency per store instruction', 'average latency per atomic instruction', 'average latency of all stages per instruction', 'average cycles per load instruction', 'average cycles per store instruction', 'average cycles per atomic instruction', 'average conflict cycles per instruction', 'average cycles per instruction', 'shared memory access efficiency'])
+2026-09-04 12:09:23,300 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:23] "POST /perf_exec HTTP/1.1" 200 -
+2026-09-04 12:09:23,300 INFO common.api_common: ret_code cmdline_str: env
+2026-09-04 12:09:23,302 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "POST /perf_exec HTTP/1.1" 200 51
+2026-09-04 12:09:23,314 INFO common.api_common: ret_code cmdline_str: ls /sys/devices/virtual/mxcd/
+2026-09-04 12:09:23,323 INFO common.api_common: ret_code cmdline_str: ls /sys/devices/virtual/mxcd/mxcd/layout/nodes/
+2026-09-04 12:09:23,329 INFO phttp.server_backend: get_device_info.layout nodes: ['0', '1', '2', '3', '300', '301', '302', '303', '304', '305', '306', '307', '308', '309', '310', '311', '312', '313', '314', '315', '316', '317', '318', '319', '320', '321', '322', '323', '324', '325', '326', '327', '328', '329', '4', '5', '6', '7', '8', '9']
+2026-09-04 12:09:23,329 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//0/gpu_id
+2026-09-04 12:09:23,335 INFO phttp.server_backend: get_device_info.node 0 gpu_id 0
+2026-09-04 12:09:23,335 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//1/gpu_id
+2026-09-04 12:09:23,341 INFO phttp.server_backend: get_device_info.node 1 gpu_id 0
+2026-09-04 12:09:23,341 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//2/gpu_id
+2026-09-04 12:09:23,347 INFO phttp.server_backend: get_device_info.node 2 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//2/gpu_id: Operation not permitted
+2026-09-04 12:09:23,347 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//3/gpu_id
+2026-09-04 12:09:23,353 INFO phttp.server_backend: get_device_info.node 3 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//3/gpu_id: Operation not permitted
+2026-09-04 12:09:23,353 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//300/gpu_id
+2026-09-04 12:09:23,359 INFO phttp.server_backend: get_device_info.node 300 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//300/gpu_id: Operation not permitted
+2026-09-04 12:09:23,359 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//301/gpu_id
+2026-09-04 12:09:23,365 INFO phttp.server_backend: get_device_info.node 301 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//301/gpu_id: Operation not permitted
+2026-09-04 12:09:23,365 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//302/gpu_id
+2026-09-04 12:09:23,371 INFO phttp.server_backend: get_device_info.node 302 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//302/gpu_id: Operation not permitted
+2026-09-04 12:09:23,371 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//303/gpu_id
+2026-09-04 12:09:23,377 INFO phttp.server_backend: get_device_info.node 303 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//303/gpu_id: Operation not permitted
+2026-09-04 12:09:23,377 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//304/gpu_id
+2026-09-04 12:09:23,382 INFO phttp.server_backend: get_device_info.node 304 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//304/gpu_id: Operation not permitted
+2026-09-04 12:09:23,383 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//305/gpu_id
+2026-09-04 12:09:23,388 INFO phttp.server_backend: get_device_info.node 305 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//305/gpu_id: Operation not permitted
+2026-09-04 12:09:23,389 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//306/gpu_id
+2026-09-04 12:09:23,394 INFO phttp.server_backend: get_device_info.node 306 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//306/gpu_id: Operation not permitted
+2026-09-04 12:09:23,394 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//307/gpu_id
+2026-09-04 12:09:23,400 INFO phttp.server_backend: get_device_info.node 307 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//307/gpu_id: Operation not permitted
+2026-09-04 12:09:23,400 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//308/gpu_id
+2026-09-04 12:09:23,406 INFO phttp.server_backend: get_device_info.node 308 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//308/gpu_id: Operation not permitted
+2026-09-04 12:09:23,406 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//309/gpu_id
+2026-09-04 12:09:23,412 INFO phttp.server_backend: get_device_info.node 309 gpu_id 10572
+2026-09-04 12:09:23,412 INFO phttp.server_backend: get_device_info.using node id 309
+2026-09-04 12:09:23,412 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//310/gpu_id
+2026-09-04 12:09:23,418 INFO phttp.server_backend: get_device_info.node 310 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//310/gpu_id: Operation not permitted
+2026-09-04 12:09:23,418 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//311/gpu_id
+2026-09-04 12:09:23,423 INFO phttp.server_backend: get_device_info.node 311 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//311/gpu_id: Operation not permitted
+2026-09-04 12:09:23,424 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//312/gpu_id
+2026-09-04 12:09:23,429 INFO phttp.server_backend: get_device_info.node 312 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//312/gpu_id: Operation not permitted
+2026-09-04 12:09:23,429 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//313/gpu_id
+2026-09-04 12:09:23,435 INFO phttp.server_backend: get_device_info.node 313 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//313/gpu_id: Operation not permitted
+2026-09-04 12:09:23,435 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//314/gpu_id
+2026-09-04 12:09:23,441 INFO phttp.server_backend: get_device_info.node 314 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//314/gpu_id: Operation not permitted
+2026-09-04 12:09:23,441 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//315/gpu_id
+2026-09-04 12:09:23,447 INFO phttp.server_backend: get_device_info.node 315 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//315/gpu_id: Operation not permitted
+2026-09-04 12:09:23,447 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//316/gpu_id
+2026-09-04 12:09:23,453 INFO phttp.server_backend: get_device_info.node 316 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//316/gpu_id: Operation not permitted
+2026-09-04 12:09:23,453 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//317/gpu_id
+2026-09-04 12:09:23,459 INFO phttp.server_backend: get_device_info.node 317 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//317/gpu_id: Operation not permitted
+2026-09-04 12:09:23,459 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//318/gpu_id
+2026-09-04 12:09:23,465 INFO phttp.server_backend: get_device_info.node 318 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//318/gpu_id: Operation not permitted
+2026-09-04 12:09:23,465 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//319/gpu_id
+2026-09-04 12:09:23,471 INFO phttp.server_backend: get_device_info.node 319 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//319/gpu_id: Operation not permitted
+2026-09-04 12:09:23,471 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//320/gpu_id
+2026-09-04 12:09:23,476 INFO phttp.server_backend: get_device_info.node 320 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//320/gpu_id: Operation not permitted
+2026-09-04 12:09:23,477 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//321/gpu_id
+2026-09-04 12:09:23,482 INFO phttp.server_backend: get_device_info.node 321 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//321/gpu_id: Operation not permitted
+2026-09-04 12:09:23,483 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//322/gpu_id
+2026-09-04 12:09:23,488 INFO phttp.server_backend: get_device_info.node 322 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//322/gpu_id: Operation not permitted
+2026-09-04 12:09:23,488 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//323/gpu_id
+2026-09-04 12:09:23,494 INFO phttp.server_backend: get_device_info.node 323 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//323/gpu_id: Operation not permitted
+2026-09-04 12:09:23,494 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//324/gpu_id
+2026-09-04 12:09:23,500 INFO phttp.server_backend: get_device_info.node 324 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//324/gpu_id: Operation not permitted
+2026-09-04 12:09:23,500 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//325/gpu_id
+2026-09-04 12:09:23,506 INFO phttp.server_backend: get_device_info.node 325 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//325/gpu_id: Operation not permitted
+2026-09-04 12:09:23,506 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//326/gpu_id
+2026-09-04 12:09:23,511 INFO phttp.server_backend: get_device_info.node 326 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//326/gpu_id: Operation not permitted
+2026-09-04 12:09:23,512 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//327/gpu_id
+2026-09-04 12:09:23,517 INFO phttp.server_backend: get_device_info.node 327 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//327/gpu_id: Operation not permitted
+2026-09-04 12:09:23,518 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//328/gpu_id
+2026-09-04 12:09:23,523 INFO phttp.server_backend: get_device_info.node 328 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//328/gpu_id: Operation not permitted
+2026-09-04 12:09:23,524 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//329/gpu_id
+2026-09-04 12:09:23,529 INFO phttp.server_backend: get_device_info.node 329 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//329/gpu_id: Operation not permitted
+2026-09-04 12:09:23,529 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//4/gpu_id
+2026-09-04 12:09:23,535 INFO phttp.server_backend: get_device_info.node 4 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//4/gpu_id: Operation not permitted
+2026-09-04 12:09:23,535 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//5/gpu_id
+2026-09-04 12:09:23,541 INFO phttp.server_backend: get_device_info.node 5 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//5/gpu_id: Operation not permitted
+2026-09-04 12:09:23,541 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//6/gpu_id
+2026-09-04 12:09:23,547 INFO phttp.server_backend: get_device_info.node 6 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//6/gpu_id: Operation not permitted
+2026-09-04 12:09:23,547 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//7/gpu_id
+2026-09-04 12:09:23,553 INFO phttp.server_backend: get_device_info.node 7 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//7/gpu_id: Operation not permitted
+2026-09-04 12:09:23,553 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//8/gpu_id
+2026-09-04 12:09:23,558 INFO phttp.server_backend: get_device_info.node 8 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//8/gpu_id: Operation not permitted
+2026-09-04 12:09:23,558 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//9/gpu_id
+2026-09-04 12:09:23,564 INFO phttp.server_backend: get_device_info.node 9 gpu_id cat: /sys/devices/virtual/mxcd/mxcd/layout/nodes//9/gpu_id: Operation not permitted
+2026-09-04 12:09:23,564 INFO common.api_common: ret_code cmdline_str: cat /sys/devices/virtual/mxcd/mxcd/layout/nodes//309/properties
+2026-09-04 12:09:23,570 ERROR phttp.server_backend: get_device_info.parse 309 device info vbios_version 1.33.5.0 error.
+2026-09-04 12:09:23,570 ERROR phttp.server_backend: get_device_info.parse 309 device info  error.
+2026-09-04 12:09:23,570 ERROR phttp.server_backend: get_device_info.parse 309 device info  error.
+2026-09-04 12:09:23,570 INFO phttp.server_backend: get_device_info.device_info: {'309': {'gpu_id': '10572', 'cpu_cores_count': 0, 'mem_banks_count': 1, 'direct_link_count': 0, 'indirect_link_count': 0, 'vendor_id': 39321, 'device_id': 16385, 'drm_render_minor': 131, 'isa_major': 10, 'isa_minor': 0, 'is_vf': 0, 'max_vf_nums': 8, 'domain': 0, 'location_id': 4608, 'num_sdma_engines': 5, 'num_sdma_queues_per_engine': 9, 'num_vpue_cores': 1, 'num_vpud_cores': 8, 'caches_count': 157, 'peu_id_base': 0, 'peu_count': 416, 'max_waves_per_peu': 8, 'wsm_size_in_kb': 64, 'wave_front_size': 64, 'dpc_count': 8, 'dpc0_ap_mask': 8191, 'dpc1_ap_mask': 73727, 'dpc2_ap_mask': 139263, 'dpc3_ap_mask': 204799, 'dpc4_ap_mask': 270335, 'dpc5_ap_mask': 335871, 'dpc6_ap_mask': 401407, 'dpc7_ap_mask': 466943, 'dpc_arrays': 1, 'ap_per_dpc': 13, 'peu_per_ap': 4, 'pri_mem_per_thread': 4, 'max_slots_private_ap': 32, 'num_ce_queues': 16, 'max_engine_clk_gpu': 1600, 'max_engine_clk_cpu': 3600, 'mgpu_id': 0, 'topology_id': 2, 'socket_id': 0, 'hbmecc': 1, 'local_mem_size': 16777216000, 'capability': 4432512, 'maxprocess': 10}}
+2026-09-04 12:09:23,570 INFO phttp.server_backend: start generate batch files
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@compute_instructions'}, {'type': 'PRE_VAR', 'value': '@memory_instructions'}]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@compute_instructions'}]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@memory_instructions'}]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{CE.CE_PERF_BUSY_CYCLES}}'}]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,572 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,573 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_32B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_64B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_128B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_32B_low}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_32B_high}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_64B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_128B}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,574 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,574 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,575 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,575 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,575 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,575 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}, {'type': 'VARIABLE', 'value': '{{CE.CE_PERF_BUSY_CYCLES}}'}]
+2026-09-04 12:09:23,576 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,576 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,576 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_CYCLES_VALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_CYCLES_MMA}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,576 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,576 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,580 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_VALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_FMA_F32}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_FMA_F64}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_TRANS_FP16}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_TRANS_FP32}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_MTE_PI_SEG_SEL_F64}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_MTE_PI_SEG_SEL_F64}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_FMA_F32}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_FMA_F64}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_TRANS_FP16}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_TRANS_FP32}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MMA_INT8}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MMA_FP16}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MMA_BF16}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MMA_TF32}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MMA_F32}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MMA_F64}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MMA_TF64}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_32B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_64B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_128B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_32B_low}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_32B_high}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_64B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_128B}}'}, {'type': 'VARIABLE', 'value': '{{VL1.p_perf_thread_req_cnt}}'}, {'type': 'VARIABLE', 'value': '{{VL1.perf_inflt_rd_req}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}, {'type': 'VARIABLE_DICT', 'value': '{{{ISU.AP_PERF_ISU_AP_BUSY}}}'}]
+2026-09-04 12:09:23,584 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,588 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,588 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{CE.CE_PERF_SEND_RM_WORKGROUPS}}'}]
+2026-09-04 12:09:23,588 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,588 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,589 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{CE.CE_PERF_SEND_RM_WAVES}}'}]
+2026-09-04 12:09:23,589 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,589 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,589 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{RM.RM_PERF_WAVES_InFlight_Level_P0}}'}, {'type': 'VARIABLE', 'value': '{{RM.RM_PERF_WAVES_InFlight_Level_P1}}'}, {'type': 'VARIABLE', 'value': '{{RM.RM_PERF_WAVES_InFlight_Level_P2}}'}, {'type': 'VARIABLE', 'value': '{{RM.RM_PERF_WAVES_InFlight_Level_P3}}'}, {'type': 'VARIABLE', 'value': '{{CE.CE_PERF_SEND_RM_WAVES}}'}]
+2026-09-04 12:09:23,589 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,589 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,591 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_CYCLES_VALU_4CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_CYCLES_VALU_16CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_CYCLES_MMA_16CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_CYCLES_MMA_32CYCLES}}'}]
+2026-09-04 12:09:23,592 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,593 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,594 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE_DICT', 'value': '{{{ISU.AP_PERF_INST_CYCLES_MMA}}}'}, {'type': 'VARIABLE_DICT', 'value': '{{{ISU.AP_PERF_INST_CYCLES_MMA}}}'}, {'type': 'VARIABLE_DICT', 'value': '{{{ISU.AP_PERF_INST_CYCLES_VALU}}}'}]
+2026-09-04 12:09:23,594 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,595 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,596 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_VALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_MMA}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_SALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_GVM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_LDU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MISC}}'}]
+2026-09-04 12:09:23,598 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,599 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,600 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_ARB_WSM_STALL}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_ARB_VLS_STALL}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_ARB_DATA_STALL}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_ARB_VALU_STALL}}'}]
+2026-09-04 12:09:23,601 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,602 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,602 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,602 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@global_insts_rd'}]
+2026-09-04 12:09:23,602 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@global_insts_wr'}]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_GLOBAL_ATOMIC}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_GLOBAL_ATOMIC_64}}'}]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@private_insts_rd'}]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@private_insts_wr'}]
+2026-09-04 12:09:23,603 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@ldu_insts_rd'}]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@sl1_rd'}]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@sl1_l2c_rd'}]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@sl1_hit_rate'}]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@vl1_insts_rd'}]
+2026-09-04 12:09:23,604 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@vl1_insts_wr'}]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{VL1.p_total_atomic_instruction_event}}'}]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@vl1_hit_rate'}]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@l2c_insts_rd'}]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@l2c_insts_wr'}]
+2026-09-04 12:09:23,605 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_atomic_req}}'}]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@l2c_hit_rate'}]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_GVM_ATOMIC}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_ATOMIC}}'}]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq}}'}]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,606 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq}}'}]
+2026-09-04 12:09:23,607 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,607 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,607 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_32B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_64B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_128B}}'}]
+2026-09-04 12:09:23,607 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,607 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,607 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_32B_low}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_32B_high}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_64B}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_wrreq_128B}}'}]
+2026-09-04 12:09:23,608 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,608 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,613 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,618 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@vl1_hit_rate'}, {'type': 'PRE_VAR', 'value': '@l2c_hit_rate'}, {'type': 'PRE_VAR', 'value': '@sl1_hit_rate'}, {'type': 'PRE_VAR', 'value': '@global_insts_rd'}, {'type': 'PRE_VAR', 'value': '@global_insts_wr'}, {'type': 'PRE_VAR', 'value': '@private_insts_rd'}, {'type': 'PRE_VAR', 'value': '@private_insts_wr'}, {'type': 'PRE_VAR', 'value': '@generic_insts_rd'}, {'type': 'PRE_VAR', 'value': '@generic_insts_wr'}, {'type': 'PRE_VAR', 'value': '@ldu_insts_rd'}, {'type': 'PRE_VAR', 'value': '@bsm_insts_rd'}, {'type': 'PRE_VAR', 'value': '@bsm_insts_wr'}, {'type': 'PRE_VAR', 'value': '@vl1_insts_rd'}, {'type': 'PRE_VAR', 'value': '@vl1_insts_wr'}, {'type': 'PRE_VAR', 'value': '@sl1_rd'}, {'type': 'PRE_VAR', 'value': '@sl1_l2c_rd'}, {'type': 'PRE_VAR', 'value': '@l2c_insts_rd'}, {'type': 'PRE_VAR', 'value': '@l2c_insts_wr'}]
+2026-09-04 12:09:23,623 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,623 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq_inflight_level}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rdreq}}'}]
+2026-09-04 12:09:23,623 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,623 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,624 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rd_histogram_0_255}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rd_histogram_256_511}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rd_histogram_512_1K}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rd_histogram_1K_2K}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_dnoc_rd_histogram_2K_INF}}'}]
+2026-09-04 12:09:23,625 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,625 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,626 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{VL1.p_stall_due_oldest_pt0}}'}, {'type': 'VARIABLE', 'value': '{{VL1.p_stall_due_oldest_pt1}}'}, {'type': 'VARIABLE', 'value': '{{VL1.p_stall_due_oldest_pt2}}'}, {'type': 'VARIABLE', 'value': '{{VL1.p_stall_due_oldest_pt3}}'}]
+2026-09-04 12:09:23,626 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,627 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,627 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_RD}}'}]
+2026-09-04 12:09:23,627 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,627 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,627 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_WR}}'}]
+2026-09-04 12:09:23,627 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,627 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,627 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_ATOMIC}}'}]
+2026-09-04 12:09:23,627 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,628 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,628 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}]
+2026-09-04 12:09:23,628 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,628 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,628 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_READ_INFLIGHT_LEVEL}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_RD}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_RD}}'}]
+2026-09-04 12:09:23,628 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,628 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,629 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_WR_INFLIGHT_LEVEL}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_WR}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_WR}}'}]
+2026-09-04 12:09:23,629 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,629 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,629 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_ATOMIC_INFLIGHT_LEVEL}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_ATOMIC}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_ATOMIC}}'}]
+2026-09-04 12:09:23,629 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,630 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,630 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_INFLIGHT_LEVEL_IN_AP}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_INFLIGHT_LEVEL}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}]
+2026-09-04 12:09:23,630 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,630 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,631 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_RD_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_RD}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_RD}}'}]
+2026-09-04 12:09:23,631 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,631 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,631 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_WR_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_WR}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_WR}}'}]
+2026-09-04 12:09:23,631 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,632 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,632 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_ATOMIC_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_ATOMIC}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_ATOMIC}}'}]
+2026-09-04 12:09:23,632 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,632 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,633 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_CONFLICT_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}]
+2026-09-04 12:09:23,633 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,633 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,633 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_RD_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_WR_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_ATOMIC_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}]
+2026-09-04 12:09:23,634 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,634 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,634 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_RD_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_WR_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_ATOMIC_CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_BSM_CONFLICT_CYCLES}}'}]
+2026-09-04 12:09:23,635 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,635 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,635 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_WAVES}}'}]
+2026-09-04 12:09:23,635 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,636 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,636 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{RM.RM_PERF_DISPATCHED_WAVES_P0}}'}, {'type': 'VARIABLE', 'value': '{{RM.RM_PERF_DISPATCHED_WAVES_P1}}'}, {'type': 'VARIABLE', 'value': '{{RM.RM_PERF_DISPATCHED_WAVES_P2}}'}, {'type': 'VARIABLE', 'value': '{{RM.RM_PERF_DISPATCHED_WAVES_P3}}'}]
+2026-09-04 12:09:23,636 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,636 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,636 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,636 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,636 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,637 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_TRANS_FP16}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_TRANS_FP32}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_MTE_PI_SEG_SEL_F64}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_CYCLES_VALU_4CYCLES}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,637 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,638 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,638 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_SALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,638 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,638 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,638 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_CYCLES_MMA}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,638 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,638 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,639 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{VLS.PERFEVENT_VLS_ACTIVE}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,639 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,639 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,639 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_req}}'}, {'type': 'VARIABLE', 'value': '{{L2C.1_b1}}'}]
+2026-09-04 12:09:23,639 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,639 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,639 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,639 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@total_instruction_num'}]
+2026-09-04 12:09:23,640 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,640 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE_DICT', 'value': '{{{ISU.AP_PERF_INSTS_VALU}}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,640 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@total_instruction_num'}]
+2026-09-04 12:09:23,641 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,641 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE_DICT', 'value': '{{{ISU.AP_PERF_INSTS_VALU}}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,642 INFO utils.complier: analyse  formula:[{'type': 'PRE_VAR', 'value': '@total_instruction_num'}]
+2026-09-04 12:09:23,642 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,642 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_VALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_MMA}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_SALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_GVM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_LDU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MISC}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,643 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,643 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,644 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE_DICT', 'value': '{{{ISU.AP_PERF_INSTS_VALU}}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_VALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_MMA}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_SALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_GVM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_LDU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MISC}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_ISU_AP_BUSY}}'}]
+2026-09-04 12:09:23,644 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,645 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,645 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_VALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_MMA}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_SALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MISC}}'}]
+2026-09-04 12:09:23,645 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,645 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_GVM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_LDU}}'}]
+2026-09-04 12:09:23,645 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_GLOBAL_RD}}'}]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_GLOBAL_WR}}'}]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_PRIVATE_RD}}'}]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_PRIVATE_WR}}'}]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_GENERIC_RD}}'}]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_GENERIC_WR}}'}]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,646 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_LDU}}'}]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_RD}}'}]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_BSM_WR}}'}]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{VL1.p_total_read_instruction_event}}'}]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{VL1.p_total_write_instruction_event}}'}]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,647 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{VL1.p_perf_thread_req_cnt}}'}, {'type': 'VARIABLE', 'value': '{{VL1.p_perf_miss_cnt}}'}, {'type': 'VARIABLE', 'value': '{{VL1.p_perf_thread_req_cnt}}'}]
+2026-09-04 12:09:23,648 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,648 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_rd_req}}'}]
+2026-09-04 12:09:23,648 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,648 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_wr_req}}'}]
+2026-09-04 12:09:23,648 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,648 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{L2C.perf_hit}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_sector_hit}}'}, {'type': 'VARIABLE', 'value': '{{L2C.perf_miss}}'}]
+2026-09-04 12:09:23,649 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,649 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{SL1.sl1_kcache_total_hit_event}}'}, {'type': 'VARIABLE', 'value': '{{SL1.sl1_kcache_total_hit_on_miss_event}}'}, {'type': 'VARIABLE', 'value': '{{SL1.sl1_kcache_total_miss_event}}'}]
+2026-09-04 12:09:23,649 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,649 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{SL1.sl1_kcache_rd}}'}]
+2026-09-04 12:09:23,649 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,649 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{SL1.sl1_kcache_l2_rd}}'}]
+2026-09-04 12:09:23,649 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,650 INFO utils.complier: analyse  formula:[{'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_VALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_MMA}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_SALU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_GVM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_BSM}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INSTS_LDU}}'}, {'type': 'VARIABLE', 'value': '{{ISU.AP_PERF_INST_MISC}}'}]
+2026-09-04 12:09:23,650 INFO utils.complier: analyse  formula:[]
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INST_MMA_F32
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_ISU_ARB_WSM_STALL
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:L2C.perf_dnoc_rd_histogram_0_255
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INST_MMA_TF64
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:L2C.perf_dnoc_rdreq
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_BSM_ATOMIC_CYCLES
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INST_FMA_F64
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INST_GENERIC_WR
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:VL1.p_perf_thread_req_cnt
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:L2C.perf_hit
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:SL1.sl1_kcache_total_miss_event
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INST_BSM_WR
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INST_CYCLES_VALU_4CYCLES
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_BSM_RD_CYCLES
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INSTS_GVM
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INST_PRIVATE_WR
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INST_CYCLES_MMA_32CYCLES
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_INST_GLOBAL_ATOMIC
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:VL1.p_stall_due_oldest_pt2
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:VL1.p_total_write_instruction_event
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_WAVES
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:ISU.AP_PERF_BSM_INFLIGHT_LEVEL
+2026-09-04 12:09:23,650 INFO common.api_common: f_var:L2C.perf_dnoc_rdreq_32B
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_req
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_MMA_FP16
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:RM.RM_PERF_WAVES_InFlight_Level_P3
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_dnoc_rd_histogram_2K_INF
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_dnoc_rd_histogram_1K_2K
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_dnoc_rd_histogram_512_1K
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_TRANS_FP32
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_atomic_req
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:RM.RM_PERF_DISPATCHED_WAVES_P1
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_miss
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_TRANS_FP16
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_GLOBAL_WR
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_CYCLES_VALU_16CYCLES
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_CYCLES_MMA_16CYCLES
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_GLOBAL_ATOMIC_64
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_ISU_ARB_VLS_STALL
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:SL1.sl1_kcache_total_hit_on_miss_event
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_dnoc_rdreq_64B
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_CYCLES_MMA
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:RM.RM_PERF_WAVES_InFlight_Level_P1
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_MMA_INT8
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_MMA_F64
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_dnoc_rd_histogram_256_511
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INSTS_LDU
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:SL1.sl1_kcache_rd
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INSTS_GVM_ATOMIC
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INSTS_VALU
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_dnoc_wrreq_128B
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_MMA_BF16
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_CYCLES_VALU
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_MTE_PI_SEG_SEL_F64
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_GENERIC_RD
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_BSM_WR_INFLIGHT_LEVEL
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_BSM_READ_INFLIGHT_LEVEL
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:VL1.p_stall_due_oldest_pt1
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:L2C.perf_dnoc_wrreq_32B_high
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_ISU_ARB_DATA_STALL
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:ISU.AP_PERF_INST_BSM_ATOMIC
+2026-09-04 12:09:23,651 INFO common.api_common: f_var:VL1.p_stall_due_oldest_pt3
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:VL1.p_total_read_instruction_event
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:L2C.perf_rd_req
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:RM.RM_PERF_DISPATCHED_WAVES_P2
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:VL1.perf_inflt_rd_req
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:L2C.perf_dnoc_rdreq_128B
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_BSM_CONFLICT_CYCLES
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_ISU_ARB_VALU_STALL
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_BSM_ATOMIC_INFLIGHT_LEVEL
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:CE.CE_PERF_SEND_RM_WORKGROUPS
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_INSTS_MMA
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:RM.RM_PERF_DISPATCHED_WAVES_P0
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_BSM_WR_CYCLES
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:L2C.perf_dnoc_wrreq
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:RM.RM_PERF_DISPATCHED_WAVES_P3
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_INSTS_BSM
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_INST_MMA_TF32
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:SL1.sl1_kcache_total_hit_event
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_INST_MISC
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:CE.CE_PERF_SEND_RM_WAVES
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_BSM_INFLIGHT_LEVEL_IN_AP
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:VL1.p_perf_miss_cnt
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_INST_FMA_F32
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:CE.CE_PERF_BUSY_CYCLES
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:RM.RM_PERF_WAVES_InFlight_Level_P0
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:RM.RM_PERF_WAVES_InFlight_Level_P2
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:L2C.perf_dnoc_wrreq_64B
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:VL1.p_stall_due_oldest_pt0
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:L2C.perf_wr_req
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:VL1.p_total_atomic_instruction_event
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_INSTS_SALU
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:VLS.PERFEVENT_VLS_ACTIVE
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_ISU_AP_BUSY
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:L2C.perf_dnoc_wrreq_32B_low
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:L2C.perf_dnoc_rdreq_inflight_level
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:L2C.1_b1
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_INST_GLOBAL_RD
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:L2C.perf_sector_hit
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_INST_BSM_RD
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:SL1.sl1_kcache_l2_rd
+2026-09-04 12:09:23,652 INFO common.api_common: f_var:ISU.AP_PERF_INST_PRIVATE_RD
+2026-09-04 12:09:23,654 INFO tools.events_generator.batches_generator: output path is: /tmp/profout
+2026-09-04 12:09:23,654 INFO tools.events_generator.batches_generator: generate event_batch_1.json successfully!
+2026-09-04 12:09:23,655 INFO tools.events_generator.batches_generator: generate event_batch_2.json successfully!
+2026-09-04 12:09:23,655 INFO tools.events_generator.batches_generator: generate event_batch_3.json successfully!
+2026-09-04 12:09:23,655 INFO tools.events_generator.batches_generator: generate event_batch_4.json successfully!
+2026-09-04 12:09:23,655 INFO tools.events_generator.batches_generator: generate event_batch_5.json successfully!
+2026-09-04 12:09:23,655 INFO tools.events_generator.batches_generator: generate event_batch_6.json successfully!
+2026-09-04 12:09:23,655 INFO tools.events_generator.batches_generator: generate event_batch_7.json successfully!
+2026-09-04 12:09:23,656 INFO tools.events_generator.batches_generator: generate event_batch_8.json successfully!
+2026-09-04 12:09:23,656 INFO tools.events_generator.batches_generator: generate event_batch_9.json successfully!
+2026-09-04 12:09:23,656 INFO phttp.server_backend: generate batch files done
+2026-09-04 12:09:23,656 INFO common.api_common: ret_code cmdline_str: rm -f /root/mcRpcPort.ini
+2026-09-04 12:09:23,662 INFO common.api_common: ret_code cmdline_str: cp /tmp/profout/event_batch_1.json /tmp/profout/mcProfiler.json
+2026-09-04 12:09:23,672 INFO common.api_common: ret_code cmdline_str: cd /root/workspace/mx_flash_attn_kernel_opt; export MCTX_TARGET_INIT=true; export MACA_ETC_PATH=/tmp/profout; export MXLOG_LEVEL=info; /opt/conda/bin/python3 prof_target.py build/nomax.so 12
+2026-09-04 12:09:23,672 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:23,682 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:24,083 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:24,092 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:24,592 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:24,601 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:25,202 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:25,211 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:25,912 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:25,936 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:26,737 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:26,747 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:27,648 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:27,657 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:28,313 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:28,319 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:28] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:09:28,319 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 2301
+2026-09-04 12:09:28,658 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:28,668 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:29,669 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:29,679 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:30,680 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:30,689 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:31,690 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:31,700 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:32,701 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:32,711 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:33,325 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:33,330 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:33] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:09:33,331 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 2301
+2026-09-04 12:09:33,712 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:33,722 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:34,723 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:34,736 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:35,738 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:35,747 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:36,749 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:36,758 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:37,760 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:37,769 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:38,337 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:38,343 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:38] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:09:38,343 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:09:38,770 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:38,780 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:39,781 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:39,791 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:40,792 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:40,802 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:41,803 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:41,812 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:42,814 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:42,823 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:43,351 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:43,356 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:43] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:09:43,357 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:09:43,825 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:43,836 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:44,837 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:44,846 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:45,848 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:45,857 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:46,859 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:46,868 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:47,869 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:47,878 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:48,361 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:48,366 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:48] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:09:48,367 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:09:48,880 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:48,889 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:49,890 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:50,911 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:50,911 INFO prpc_client.mctool_client: MctxStreamProfilerCountDataGet Start
+2026-09-04 12:09:50,917 INFO prpc_client.mctool_client: MctxStreamProfilerCountDataGet Loop
+2026-09-04 12:09:51,921 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:52,300 INFO prpc_client.mctool_client: MctxStreamProfilerCountDataGet Loop
+2026-09-04 12:09:52,932 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:53,375 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:53,380 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:53] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:09:53,380 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:09:53,943 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:53,953 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:54,954 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:54,964 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:55,966 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:55,976 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:56,977 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:56,987 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:57,988 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:57,998 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:09:58,389 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:09:58,395 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:09:58] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:09:58,395 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:09:59,000 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:09:59,010 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:00,011 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:00,021 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:01,023 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:01,032 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:02,037 INFO common.api_common: ret_code cmdline_str: rm -f /root/mcRpcPort.ini
+2026-09-04 12:10:02,047 INFO common.api_common: ret_code cmdline_str: cp /tmp/profout/event_batch_2.json /tmp/profout/mcProfiler.json
+2026-09-04 12:10:02,055 INFO common.api_common: ret_code cmdline_str: cd /root/workspace/mx_flash_attn_kernel_opt; export MCTX_TARGET_INIT=true; export MACA_ETC_PATH=/tmp/profout; export MXLOG_LEVEL=info; /opt/conda/bin/python3 prof_target.py build/nomax.so 12
+2026-09-04 12:10:02,055 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:02,065 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:02,466 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:02,482 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:02,984 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:02,993 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:03,403 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:03,409 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:03] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:03,409 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:03,594 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:03,604 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:04,305 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:04,315 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:05,116 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:05,126 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:06,027 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:06,037 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:07,039 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:07,049 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:08,050 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:08,060 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:08,413 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:08,419 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:08] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:08,419 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:09,061 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:09,071 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:10,072 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:10,082 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:11,084 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:11,093 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:12,095 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:12,105 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:13,106 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:13,141 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:13,427 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:13,432 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:13] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:13,432 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:14,143 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:14,155 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:15,155 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:15,165 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:16,167 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:16,175 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:17,176 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:17,187 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:18,189 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:18,202 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:18,440 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:18,446 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:18] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:18,446 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:19,203 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:19,214 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:20,215 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:20,224 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:21,225 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:21,235 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:22,237 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:22,248 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:23,249 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:23,262 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:23,454 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:23,459 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:23] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:23,460 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:24,263 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:24,275 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:25,276 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:25,289 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:26,290 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:26,302 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:27,304 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:27,317 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:28,318 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:28,468 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:28,473 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:28] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:28,473 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:29,336 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:29,344 INFO prpc_client.mctool_client: MctxStreamProfilerCountDataGet Start
+2026-09-04 12:10:29,345 INFO prpc_client.mctool_client: MctxStreamProfilerCountDataGet Loop
+2026-09-04 12:10:30,350 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:30,669 INFO prpc_client.mctool_client: MctxStreamProfilerCountDataGet Loop
+2026-09-04 12:10:31,363 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:32,375 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:32,389 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:33,390 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:33,404 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:33,477 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:33,483 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:33] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:33,483 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:34,405 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:34,418 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:35,419 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:35,430 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:36,431 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:36,442 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:37,443 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:37,457 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:38,458 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:38,468 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:38,491 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:38,497 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:38] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:38,497 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:39,470 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:39,479 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:40,483 INFO common.api_common: ret_code cmdline_str: rm -f /root/mcRpcPort.ini
+2026-09-04 12:10:40,492 INFO common.api_common: ret_code cmdline_str: cp /tmp/profout/event_batch_3.json /tmp/profout/mcProfiler.json
+2026-09-04 12:10:40,499 INFO common.api_common: ret_code cmdline_str: cd /root/workspace/mx_flash_attn_kernel_opt; export MCTX_TARGET_INIT=true; export MACA_ETC_PATH=/tmp/profout; export MXLOG_LEVEL=info; /opt/conda/bin/python3 prof_target.py build/nomax.so 12
+2026-09-04 12:10:40,500 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:40,510 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:40,911 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:40,924 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:41,424 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:41,436 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:42,037 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:42,050 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:42,751 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:42,764 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:43,501 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:43,507 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:43] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:43,507 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:43,565 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:43,578 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:44,480 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:44,490 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:45,491 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:45,504 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:46,505 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:46,519 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:47,519 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:47,543 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:48,515 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:48,521 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:48] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:48,521 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:48,543 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:48,557 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:49,558 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:49,571 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:50,573 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:50,586 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:51,587 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:51,600 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:52,602 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:52,615 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:53,525 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:53,531 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:53] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:53,531 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:53,617 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:53,631 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:54,632 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:54,646 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:55,647 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:55,660 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:56,662 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:56,675 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:57,675 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:57,688 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:58,539 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:10:58,545 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:10:58] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:10:58,545 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:10:58,690 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:58,703 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:10:59,703 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:10:59,717 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:00,718 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:00,731 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:01,732 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:01,745 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:02,747 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:02,760 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:03,549 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:11:03,555 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:11:03] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:11:03,555 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:11:03,761 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:03,774 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:04,776 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:04,789 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:05,790 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:05,803 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:06,805 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:07,821 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:07,821 INFO prpc_client.mctool_client: MctxStreamProfilerCountDataGet Start
+2026-09-04 12:11:07,829 INFO prpc_client.mctool_client: MctxStreamProfilerCountDataGet Loop
+2026-09-04 12:11:08,563 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:11:08,569 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:11:08] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:11:08,569 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:11:08,835 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:09,342 INFO prpc_client.mctool_client: MctxStreamProfilerCountDataGet Loop
+2026-09-04 12:11:09,849 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:10,864 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:10,877 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:11,878 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:11,891 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:12,893 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:12,905 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:13,577 DEBUG urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:50123
+2026-09-04 12:11:13,583 INFO werkzeug: 127.0.0.1 - - [04/Sep/2026 12:11:13] "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 -
+2026-09-04 12:11:13,583 DEBUG urllib3.connectionpool: http://127.0.0.1:50123 "GET /perf_progress?exec_id=8b2e20ee-800f-4256-8fbd-f83bed36ff74 HTTP/1.1" 200 3236
+2026-09-04 12:11:13,906 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:13,919 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
+2026-09-04 12:11:14,921 INFO common.api_common: ret_code cmdline_str: cat /root/mcRpcPort.ini
+2026-09-04 12:11:14,932 WARNING phttp.server_backend: get_srvrpc_port get rpc server ports failed: cannot retrieve rpc server port.
