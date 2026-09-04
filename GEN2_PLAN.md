@@ -64,3 +64,25 @@ L2. PV 的 A 侧若也能压进更多真实 dim 行(16 行全用) — 需复核 
    若 PV 的 m=16 是 16 个 dim(全有用)而 head 在别处, PV 可能本就高效; 若 m=head 则同 QK 浪费。
 L3. 第一名可能用不同算法规避 GQA MMA 浪费(标量 FMA for 4 head? 但 MMA 更快通常是)。
 L4. 其它 case 的 launch/combine 优化 (小 case 已近 floor)。
+
+## 等待 OJ 结果期间的方向梳理 (2026-09-04, ov = 1449us 待 OJ)
+ov 版 per-case speedup: 慢 case 7(1.28) 12(1.35) 13(1.22) 14(1.29) <- 最大头.
+已确认(round5 两 agent + 我修正): 长 sweep 是 DRAM-load-latency / per-page-load-issue 受限,
+不是 MMA 也不是纯带宽。r5_overlap agent 的核心建议:
+"唯一没试过的杠杆 = 不牺牲 padded layout 的前提下提高 CTAs/SM"(memory-latency-bound,
+更多 resident warp 才能藏每页 load stall)。当前 smem 8.5KB -> 8 CTAs/SM.
+r5_alt agent 的核心建议: 每页加载模式(kv-sliced)在 batch1 只有 ~0.77TB/s 上限;
+整页连续读能到 1.5TB/s 但所有实现路径(smem/reg/direct)都因 occupancy/reg墙/coalescing 失败.
+它提的激进方向: 64 lane 协作整页连续拉取(32KB)到寄存器(~128B/thread) 再用 shuffle 蝴蝶重分布;
+或 co-schedule 同一页的多个 kv-CTA 使 slice 读变成一条连续 DRAM 流.
+
+候选方向(等 OJ 后按结果选):
+A. 提高 CTAs/SM: 砍 smem 到 <8KB 且保持 VPAD=8 无冲突 -> 9-12 CTAs/SM. 
+   具体: K tile 读一次后可放寄存器? 或 V 用 512B-chunk 的 ldg_b128_bsm 部分直接(agent 说该范围可靠)。
+B. co-schedule 同页 kv-CTAs: batch1 (case 10/13/14) 的 kv=8 个 CTA 读同一物理页的 8 个 kv-slice,
+   若它们同时驻留 SM, DRAM 能看到连续整页流。alt_v1 的 kv-fastest grid 已朝这个方向(case13/14 +2-4%)。
+   -> 扩展: 不仅 grid 顺序, 还可用 L2 局部性 (同页 8 slice 共 32KB, L2 应能缓存, 第2-8个 CTA 命中)。
+C. 降低每页 load 指令数: stage 每 thread 8x uint4 (4 tok*2(K,V)) -> 是否可 8B 对齐少指令或用 32B.
+D. 若 OJ 显示某 case 分布敏感(像之前 case11), 针对性调 tps/ns。
+
+正确性/回归纪律: 每次改动 full 14 case verify + interleaved A/B; regs<152; CTAs/SM 不掉.
