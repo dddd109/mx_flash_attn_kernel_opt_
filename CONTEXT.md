@@ -92,3 +92,9 @@ CONTEXT/DECISIONS/SKILL immediately (they drifted out of sync).
   cvt_pk pack, defer l-shuffles, batch1 kv-fastest grid. All regs<152, smem 8.5KB.
 - Next: submit ov to OJ for ground truth; then push on the load-latency direction
   (raise CTAs/SM without losing padded layout is the untried lever).
+
+## 2026-09-04 晚 (用户休息, 自主继续)
+- 当前最佳: submission_ov_safe.cu = 67.07 OJ (case4 fixed 75; case12=360us best; case1/2 6->7us 小回退)
+- 待办: (1) 验证/修复 case1/2 的 1us 回退(可能噪声, 但两次提交都 0.007) (2) 大 case 主攻:
+  case7(0.213/56) case11(0.187/57) case13(0.171/58) case14(0.120/58) 等仍有空间。
+- 方向: occupancy (r5 指向的未试杠杆) / 大 case load-latency。本地==OJ on 大 case, 可信。
