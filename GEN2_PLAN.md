@@ -44,3 +44,23 @@ D. **对照第一名**: 72.71 ≈ cases 4-14 平均 tk/tb 0.41 (=2.43x)。可能
 - smem 双缓冲 / 寄存器预取跨 barrier: 全部 ~2x 退化 (mxcc 寄存器墙)。
 - split 微调: 已到最优 (r3 穷举扫描确认每 case baseline 最佳)。
 - 本地 randn cs 分布 ≠ OJ 分布: 只信 OJ tk 对比 / 本地 speedup 相对。
+
+## Gen2 中期结论 (2026-09-04, 探针/布局/扫描全部完成)
+- MMA 布局彻底解码: C[m=16 head-rows][n=16], thread(row,grp)->C[row][grp*4+comp];
+  A fragment = thread(row,grp) 持 q[head=row][k=grp*4..+3]; B fragment 持 K[token=row][k=grp*4..+3].
+- QK/PV 都是 8 MMA/page (k=128 分 8×k16), 条数结构性最小。16x16x32 不存在(是2条mma封装)。
+- kv8 的 A 行只有 4/16 有用 (gqa=4), kv4 8/16 —— B 侧 16 token 全有用, 浪费在 A 侧 head 行,
+  架构上无法跨 kv 填(每 MMA B 固定)。trackA2kv 实测 2.5x 退化证实。
+- MMA issue 饱和: case12 ns 60-320 全平 (3840+ CTA 已填满 104SM x8); case13(batch1 仅8单位)
+  需 ns90 才填满 (720 CTA), ns30=299->ns90=181。分派已最优。
+- PV ≈ QK 成本 (各 ~100us/8MMA on case7), 都随 MMA 条数线性。
+- 纯内存+softmax 底 ~25-40us (仅 ~10%)。MMA 重叠收益上限 ~10%。
+- 本地==OJ on 大 case (7/8/9/12/13 差<6-15%) => 本地优化可信。
+
+## 结论: 达到 72.7 需 ~25% (cases4-14 1.25x), 而 MMA 条数/行效率/occupancy 均已结构性封顶。
+## 剩下的可能杠杆(诚实评估):
+L1. MMA 与 memory 重叠优化 (~10% 上限)。
+L2. PV 的 A 侧若也能压进更多真实 dim 行(16 行全用) — 需复核 PV 的 m 到底是 head 还是 dim。
+   若 PV 的 m=16 是 16 个 dim(全有用)而 head 在别处, PV 可能本就高效; 若 m=head 则同 QK 浪费。
+L3. 第一名可能用不同算法规避 GQA MMA 浪费(标量 FMA for 4 head? 但 MMA 更快通常是)。
+L4. 其它 case 的 launch/combine 优化 (小 case 已近 floor)。
