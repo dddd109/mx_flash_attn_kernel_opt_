@@ -32,3 +32,16 @@
   PASS; sum 1610us.
 - **Workflow**: parent (coordinator) + subagents on feature branches, local verify, merge
   best. Per Tier-2 engineering-habits.
+
+## 2026-09-04 (round 3, post-2nd-crash)
+- Server crashed twice; r3 agents interrupted mid-work, their .so sweeps preserved.
+- r3_combine: exhaustive per-case ns sweeps (case 7/10/13/14 at many ns) CONFIRM the
+  split policy in nomax is already optimal (baseline wins every case). No change.
+- r3_mlp: tried staggered register-prefetch across the page barrier (v1-v4, keeping
+  ONE page in smem to preserve 7-8 CTAs/SM). ALL catastrophically regressed
+  (3100-3270us vs 1519 baseline) — register spills persist even after nomax freed
+  regs. v5 reverted to baseline. => Register-prefetch pipelining is a CONFIRMED dead
+  end on this mxcc toolchain, same as the smem double-buffer. The per-page
+  smem+barrier structure + tuned splits + nomax softmax is very hard to beat here.
+- CURRENT BEST remains submission_nomax.cu (1517us local, est ~66 OJ; sent to user for
+  xpuoj submission). No new structural win from round 3.
