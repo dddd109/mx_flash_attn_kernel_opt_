@@ -1,0 +1,46 @@
+# 第二代 (Gen2) 思路梳理 - 2026-09-04 (v66.71, MMA-bound breakthrough)
+
+## 现状
+- 最高分 **66.71** = submission_nomax.cu (去 running-max softmax)。
+- 第一 72.71，目标差 ~6 分 = cases 4-14 平均再快 ~1.25x。
+- 分数模型: score = 100*(0.925 - 0.481*tk/tb)，total=14 case 均值。
+
+## 第二代的核心洞察（探针验证）
+用"删 MMA"探针把每个大 case 的耗时拆成三部分（等内存/软max vs QK-MMA vs PV-MMA）:
+
+case7  (b64 kv8 2048): full 211.6us | 去PV(留QK) 118.8 | 去QK(留PV) 135.1 | 纯加载 ~24.6
+case9  (b32 kv8 4096): full 222.1 | 去PV 109.7 | 纯加载 24.3
+case12 (b8  kv8 32768): full 427  | 去PV 254   | 纯加载 38
+case11 (b16 kv4 12251): full 175  | 去PV 121   | 纯加载 27
+
+结论:
+1. **MMA 执行占 85-90%**（memory+softmax 只有 ~25-40us）。不是内存/延迟瓶颈。
+2. **PV(V-MMA) 比 QK 贵**: case7 去QK留PV=135 > 去PV留QK=118。PV 是更大头。
+3. **16x16x16bf16 的 B 片在单条 MMA 内固定** → GQA 多 kv 填 16 行的想法**架构上不可能**
+   (kv8 gqa=4 只有 4/16 A-行有用, kv4 gqa=8 只有 8/16)。trackA2kv 合并块实测 2.5x 退化证实。
+4. ns 扫描 60-320 全平、8x 页复用只快 9% → 都吻合"MMA issue 饱和"。
+
+## 为什么 PV 比 QK 贵（第二代要主攻的方向）
+- QK: C[16 head][16 token] = q(head) x K(token)。A=q 只有 gqa 行真实(kv8: 4/16=25%)，
+  B=K 全 16 token 有用。MMA 浪费在 A 行。
+- PV: C[16 token][16 dim] 或类似 = p(token) x V(token)。需要 p 是 softmax 结果。
+  **PV 的 16 "行"= 16 token 全有用，但每个 token 的 p 来自不同 head?** 需复核 PV 的
+  A/B 映射 —— PV 贵可能因为它是按 (head,dim) 输出而每 head 的 p 不同 → 无法共享。
+- 待测假说: PV 每输出行是 (head, dim)，16 行 = 16 dims，A=p[token]按 token 排列，
+  但 gqa 个 head 需要 gqa 份不同的 p → PV 对每个 head 单独做 → 重复 4/8 次?
+
+## 第二代候选方向（按优先级）
+A. **[主攻] PV 结构重构**: 确认 PV 是否在重复做无用行。若 PV 的 16 MMA 行 = 16 dims
+   而 A=p 只有 gqa 组不同，尝试让一次 PV-MMA 覆盖 16 个真实 dim 行（不再每 head 重做）。
+B. **减少 MMA 指令数**: 128-dim 的 QK/PV 各需 8 条 MMA(k16)。若 PV 能一次算 2 个 head
+   的相同 token p（共享 B=V），指令减半。核心矛盾 = 每 head p 不同。
+C. **接受 MMA 总量**, 优化 MMA 之外的 ~10%: memory 与 MMA 完全重叠 (理论上限只是
+   max(mem, mma) 而非 mem+mma，但 mem 只占 10%，收益有限)。
+D. **对照第一名**: 72.71 ≈ cases 4-14 平均 tk/tb 0.41 (=2.43x)。可能第一名用了
+   非 MMA 路径(标量 FMA 稀疏 4-head)或不同切分。
+
+## 记录的反面教训（勿重蹈）
+- 16 行填满(多kv/块): 架构不可能 + trackA2kv 实测 2.5x 退化。
+- smem 双缓冲 / 寄存器预取跨 barrier: 全部 ~2x 退化 (mxcc 寄存器墙)。
+- split 微调: 已到最优 (r3 穷举扫描确认每 case baseline 最佳)。
+- 本地 randn cs 分布 ≠ OJ 分布: 只信 OJ tk 对比 / 本地 speedup 相对。
