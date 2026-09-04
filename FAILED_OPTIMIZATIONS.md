@@ -119,3 +119,14 @@ All optimization attempts below **FAILED** to improve performance. The baseline 
 | bs=4, seq=8192, nkv=8 | 0.162ms | 829.59 GB/s |
 
 **FlashAttention Reference**: 1448 GB/s (1.52x faster, different algorithm)
+## 2026-09-04 (overnight): async-copy (bsm) deep-dive - not yet cracked
+- Goal: cp.async-style global->smem for MLP across page barrier (reference ~72 likely uses it).
+- Working micro-probe: 16 lanes x1 load into dense buf[256] via __builtin_mxc_ldg_b128_bsm +
+  arrive_gvmcnt(0)+barrier_inst+syncwarp. VERIFIED correct.
+- Fails when: >16 issuing lanes, >1 load/lane, or larger/strided smem tiles (real kernel 16x136
+  K/V). Data lands wrong/duplicated ("globalOffset value and use Saddr conflict" warning when
+  smem buffer is large / dst offset large).
+- Canary (can4): real stage mapping into 16x136 aligned tile -> BOTH plain-read and MMA-read
+  garbage => async data never lands correctly at real-kernel geometry. Not an MMA-consume issue.
+- Suspect: bsm smem-addressing has a limited offset/large-buffer quirk on this toolchain. Would
+  need deep ISA archaeology to crack; parked (67.07 SOTA stands, async is uncertain payoff).
