@@ -24,8 +24,18 @@ case 1:11.2/32.0=2.86 2:12.9/28.6=2.22 3:11.8/36.1=3.06 4:22.6/44.3=1.96
 (Matches OJ profile pattern: cases 10/13/14 ~1.1x and 7/12 ~1.2x are the low-score cases.)
 
 ## Current step
-Establish baseline + memory, then parallelize optimization with subagents (parent = me,
-the coordinator). Work happens in feature branches, verified locally, best merged.
+Round-1 parallel subagent dispatch. Parent (me) benches contenders serially on the
+shared GPU (only one device), merges winners. Each round uses FRESH agents with
+limited context (task+skill+baseline+scripts only, no SOTA/teacher docs) so the runs
+double as "skill teaching verification" for the contest.
+
+## Local-sum to OJ-score proxy (measured)
+- optimized_c500_flash_attn.cu (orig 62.21 OJ): local SUM = 1959.8us
+- submission_agentG_v2.cu (65.14 OJ): local SUM = 1610.5us
+=> In the useful range, OJ score rises ~ 1pt per ~50us of local SUM reduction
+   (the two anchors: 350us <=> ~3pts). Judge candidates by SUM (mult=1).
+- Baselines compiled: build/agentG_v2.so (1610us), build/orig62.so (1960us).
+  (agentG_v2 is the 65.14 kernel; also present in worktrees as build/baseline.so)
 
 ## Constraints / gotchas
 - Correctness must hold on all 14 cases: match>=0.99 (edge cases 1.0), no 8x outliers

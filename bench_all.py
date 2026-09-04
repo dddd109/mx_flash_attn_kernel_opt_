@@ -46,12 +46,14 @@ def timeit(fn, warm, iters):
 def main():
     libpath = sys.argv[1]
     mult = int(sys.argv[2]) if len(sys.argv) > 2 else 1
+    only = [int(x) for x in sys.argv[3:]] if len(sys.argv) > 3 else None
     lib = ctypes.CDLL(libpath)
     lib.run_kernel.argtypes = [ctypes.c_void_p]*6 + [ctypes.c_int64]*9
     lib.run_kernel.restype = None
     flash_ms = {}
     t1 = 0.0
     for c in sorted(CASES):
+        if only and c not in only: continue
         batch, seq, kv, bpb, nb, cs, q, k, v, bt, out = make_case(c)
         nh = 32; headdim = 128; pbs = 16
         iters = OFFICIAL_ITERS[c]
