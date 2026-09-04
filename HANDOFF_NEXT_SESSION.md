@@ -81,3 +81,12 @@ case: (batch, cap, kv)
 - 真实 API 在 volceapi.com (apigateway-cn-beijing), 有 Cloudflare 防护
 - => 纯自动提交不可行, 需人工过 CAPTCHA。手动提交仍是唯一方式
 - 脚本: xpuoj_login.py / xpuoj_submit.py (登录可用, 提交被 captcha 挡)
+
+## 2026-09-04 深夜自主轮结果 (用户睡觉期间)
+- SOTA: **submission_ov_safe.cu = 67.07 OJ** (case4 fixed 75, case12=360us best). Local SUM ~1460us.
+- 已确认死路(勿再试): async bsm/cp.async 在 mxcc 上是坏的(数据错位/重复, 之前 probe "pass"
+  是读错地址的验证假象); occupancy 被 smem 锁在 7 CTAs/SM (砍 pad 会 bank conflict -35~41%);
+  split policy 在 local/half/full 分布下对 case 7/9/12 都已最优。
+- 待 OJ A/B 的实验: submission_c11ns11.cu (case11 ns 22->11; OJ 分布更长时可能快 ~9%,
+  但本地 randn 下变慢, 无法本地定夺)。提交它并对比 case11 tk 即可。
+- 分数模型: total = 14 case score 均值; score=100*(0.925-0.481*tk/tb)。第一 72.71。
