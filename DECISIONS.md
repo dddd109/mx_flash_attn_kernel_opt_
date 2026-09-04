@@ -45,3 +45,26 @@
   smem+barrier structure + tuned splits + nomax softmax is very hard to beat here.
 - CURRENT BEST remains submission_nomax.cu (1517us local, est ~66 OJ; sent to user for
   xpuoj submission). No new structural win from round 3.
+
+## 2026-09-04 (BREAKTHROUGH: kernel is MMA-throughput bound, NOT memory bound)
+Decisive probe experiment on case 12 (b8 kv8 32768), ns=60, all else equal:
+- full nomax kernel: 427us
+- remove V-MMAs (keep QK MMAs, loads, softmax): 254us
+- remove ALL MMAs (pure page load + softmax): 38us
+=> MMA execution is ~390us of the 427us. Memory+softmax floor is only ~38us.
+CONCLUSION: long kv8 cases are MMA-pipe-bound. Effective bandwidth ~0.6TB/s was a
+red herring (it's MMA throughput masquerading as a BW number). Earlier evidence fits:
+flat vs ns (60-320 all ~430-480us), flat vs 8x data reuse (only 9% faster), reg/smem
+pipelining dead ends (compute not latency).
+ROOT CAUSE of waste: MMA row utilization. Block computes 16 MMA rows but only
+gqa=32/kv are real query heads: kv8->4/16=25% useful, kv4->8/16=50% useful. The other
+rows run zeroed q. => up to ~2-4x MMA reduction possible by filling rows.
+NEXT DIRECTION (priority 1): multi-kv-head-per-block to fill MMA rows. A K/V page
+contains ALL kv heads' slices (k_cache[page][16][kv][128]), so one block CAN load the
+full page and compute multiple kv groups' query heads in the 16 rows. kv8: 4 kv_heads
+in one block -> rows 0-15 all real (4 heads x gqa4). This is the single biggest
+potential win. Earlier dismissal ("different kv heads need different K/V") was wrong:
+they share the same physical page, just different column slices.
+- kv4: gqa=8, 8/16 rows used. 2 kv_heads/block fills 16 rows.
+Score impact: cases 7-14 are ~1.3-1.5x; pushing kv8 cases (7/9/12/13) and kv4 (8/11/14)
+toward row-full MMA could plausibly reach the 1.5-2x that yields 72+ total.
