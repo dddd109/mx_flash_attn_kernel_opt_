@@ -86,3 +86,11 @@ C. 降低每页 load 指令数: stage 每 thread 8x uint4 (4 tok*2(K,V)) -> 是�
 D. 若 OJ 显示某 case 分布敏感(像之前 case11), 针对性调 tps/ns。
 
 正确性/回归纪律: 每次改动 full 14 case verify + interleaved A/B; regs<152; CTAs/SM 不掉.
+
+## 深夜自主推进记录 (r6 完成后)
+- r6_lat definitive diagnostic: per-page ~1438ns @ ns1, ~92% = LDG->smem stage. At ns>64 kernel
+  hits ~1.0-1.07 TB/s = DRAM peak on BW-heavy cases (7/12). async pipeline only helps the
+  LATENCY-bound batch1 cases (13: current 171us, all-capacity floor ~98us @ ns64-90; 14 similar).
+- => async-copy (bsm) is THE remaining lever for case 13/14 (~70us potential each, score 58->~70).
+- Reproduced the async failure in real kernel (match 0.0-0.12). Working probes exist (r5_overlap
+  bsm_sem*.cu). Next: bisect why bsm-fed smem fails MMA reads in real kernel while probes pass.
