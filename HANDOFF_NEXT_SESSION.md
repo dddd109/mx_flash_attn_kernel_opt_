@@ -71,3 +71,13 @@ case: (batch, cap, kv)
 - 勿再花大量时间做依赖本地 uniform 分布的 split 微调
 - 无 GPU 验证的结构改动风险高 (正确性无法本地确认)
 - 推进前先确认同事 SOTA (git pull)
+
+## 自动化提交探索结论 (2026-09-04 更新)
+- playwright + chromium 已装 (headless shell 可跑)
+- 登录成功 (storage_state 保存于 xpuoj_state.json, 但该文件含敏感 cookie 勿提交)
+- Monaco 代码注入可行 (window.monaco.editor.getModels().forEach(m=>m.setValue(code)))
+- **提交被 Cloudflare Turnstile 人机验证拦截** (console: "Captcha acquisition failed",
+  "Failed to initialize Cloudflare Turnstile")
+- 真实 API 在 volceapi.com (apigateway-cn-beijing), 有 Cloudflare 防护
+- => 纯自动提交不可行, 需人工过 CAPTCHA。手动提交仍是唯一方式
+- 脚本: xpuoj_login.py / xpuoj_submit.py (登录可用, 提交被 captcha 挡)

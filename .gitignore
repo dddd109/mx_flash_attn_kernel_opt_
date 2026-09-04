@@ -14,3 +14,5 @@ __pycache__/
 
 # Tooling
 node_modules/
+# Sensitive - never commit
+xpuoj_state.json
