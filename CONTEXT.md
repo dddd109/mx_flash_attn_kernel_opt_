@@ -75,3 +75,20 @@ double as "skill teaching verification" for the contest.
   kv4 8/16 rows (50%). Fix = fill MMA rows with multiple kv_heads per block
   (page has all kv slices). Target: kv8 4kv/block, kv4 2kv/block.
 - This is the CURRENT priority exploration (would attack cases 7/8/9/10/11/12/13/14).
+
+## CORRECTION 2026-09-04 (round 5): the "MMA-bound" model was WRONG (DCE artifact)
+My earlier probes (full 427 -> no-V-MMA 254 -> no-MMA 38us on case 12) were claimed as
+proof the kernel is MMA-throughput bound. TWO independent round-5 subagents proved this
+wrong: deleting the MMAs lets the compiler dead-code-eliminate the loads feeding them.
+With loads kept live, removing MMA changes ~nothing; removing the global->smem stage
+drops 424->~99-129us. => The kernel is DRAM-load-latency / per-page-load-issue bound
+(the ORIGINAL skill E1 model was right; my mid-round flip was wrong). This is a lesson:
+probes must keep memory ops live, and every new finding must be reconciled into
+CONTEXT/DECISIONS/SKILL immediately (they drifted out of sync).
+
+## Current best (round 5): submission_ov.cu = nomax + safe per-page latency wins
+- Local SUM ~1449us vs nomax ~1508us (-4%), ALL 14 PASS. Not yet OJ-submitted.
+- Wins: pid-prefetch, __syncwarp (64 thr = 1 warp), QK 64-bit LDS (K stride +4),
+  cvt_pk pack, defer l-shuffles, batch1 kv-fastest grid. All regs<152, smem 8.5KB.
+- Next: submit ov to OJ for ground truth; then push on the load-latency direction
+  (raise CTAs/SM without losing padded layout is the untried lever).
