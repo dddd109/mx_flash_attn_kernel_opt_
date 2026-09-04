@@ -68,3 +68,36 @@ they share the same physical page, just different column slices.
 - kv4: gqa=8, 8/16 rows used. 2 kv_heads/block fills 16 rows.
 Score impact: cases 7-14 are ~1.3-1.5x; pushing kv8 cases (7/9/12/13) and kv4 (8/11/14)
 toward row-full MMA could plausibly reach the 1.5-2x that yields 72+ total.
+
+## 2026-09-04 (CRITICAL: row-fill is architecturally IMPOSSIBLE - layout decoded)
+Decoded the C500 16x16x16bf16 fragment layout via probe (probe2.cu: A and B set to
+known per-lane values, read C back):
+- Thread (row=lane&15, grp=lane>>4) holds C[head=row][tokens=grp*4..grp*4+3].
+- A operand = the 16 query-head rows (q), B operand = the K tile (shared by all 16 rows).
+- In ONE MMA the B (K) tile is FIXED — it cannot source different kv slices per A-row.
+- => GQA kv8 (gqa=4): only 4 of 16 A-rows have real q for THIS kv's K; the other 12 rows
+  would need a DIFFERENT kv's K which one MMA cannot provide. 16-row fill via multi-kv
+  is IMPOSSIBLE within a single MMA. kv4 (gqa=8) similarly capped at 8/16.
+- trackA2kv (r4_mk2) confirmed empirically: merging 2 kvs per block WITHOUT reducing MMA
+  regressed 2.5x (fewer blocks, same MMA). tb_chain variants neutral.
+- => The wasted-row MMA work is a hardware-shape tax on GQA that CANNOT be eliminated by
+  software restructuring of the QK/PV MMAs.
+REVISED DIRECTION: since MMA rows can't be filled, attack the OTHER parts of the 427us:
+  - 254us was QK-MMA(8) only; 38us pure-load. The QK 8-MMA chain (~216us) + PV chain
+  (~173us saved by removing V-MMA) — can the number of MMA instructions per page be cut
+  another way? QK is 8 MMA (k=128/16). PV is 8 MMA. Both minimal for 128-dim.
+  - OR: is the MMA issue rate itself the limit? If 16 MMA/page-warp is fixed, the only
+  lever is FEWER WARPS issuing redundant MMA... but gqa heads need separate MMAs.
+  - OR: reduce pages processed: none (all KV needed).
+  - OR: the load path overlaps MMA poorly; with MMA taking 390us and memory 38us, even
+  PERFECT overlap only gets to max(390,38)=390 -> the win ceiling is small IF purely
+  MMA-issue bound. But the no-VMMA probe (254) shows memory+QK overlap at 254, meaning
+  QK MMA alone ~216us > memory 38us, so ~216us is the QK-issue floor unless...
+  - REVISIT: is each QK MMA really necessary for ALL 16 rows? For gqa=4, rows 4-15 are
+  zero-q. If the HARDWARE skips zero rows cheaply, the probe would show less than 8x the
+  per-useful-MMA. The no-VMMA probe implies QK MMAs cost ~27us each (216/8). For 4 useful
+  heads that's ~7us per useful head-MMA. Not obviously skippable.
+NEXT BEST DIRECTION: profile-driven — measure MMA pipe duty vs issue to know if MMA
+instructions are the hard wall or if issue/latency within MMA chains dominates; then try
+(a) reducing instructions around MMA (operand setup), (b) 2 blocks/SM interleave via
+smaller smem, (c) accepting ~390us MMA and overlapping the 38us memory perfectly.
