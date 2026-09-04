@@ -12,24 +12,25 @@ student generations. These are experience notes - applying them well is the task
 The skill NEVER contains the reference implementation's code; it describes what to do
 and WHY, so you can design your own.
 
-## The Benchmark (authoritative)
-14 cases. warmup=3. Score model: flash=50, strong kernel ~62.
-| case | batch | seqlen_k | nkv | type | iters | flash(us) |
-|------|-------|----------|-----|------|-------|-----------|
-| 1 | 4 | 2 | 4 | edge | 100 | 31.1 |
-| 2 | 4 | 2 | 8 | edge | 100 | 31.1 |
-| 3 | 16 | 17 | 4 | perf | 100 | 38.3 |
-| 4 | 16 | 64 | 8 | perf | 50 | 38.1 |
-| 5 | 16 | 141 | 4 | perf | 50 | 38.3 |
-| 6 | 16 | 362 | 8 | perf | 50 | 38.9 |
-| 7 | 64 | 2048 | 4 | perf | 12 | 162.8 |
-| 8 | 16 | 4096 | 4 | perf | 25 | 92.4 |
-| 9 | 32 | 4096 | 8 | perf | 12 | 277.4 |
-| 10 | 1 | 8192 | 4 | perf | 25 | 59.1 |
-| 11 | 16 | 12251 | 8 | perf | 12 | 383.0 |
-| 12 | 8 | 32768 | 8 | perf | 12 | 553.3 |
-| 13 | 1 | 58966 | 4 | perf | 25 | 153.6 |
-| 14 | 1 | 61519 | 4 | perf | 25 | 160.5 |
+## The Benchmark (authoritative - SPJ-CONFIRMED; the 3 corrections below are vital)
+14 cases. num_heads=32, headdim=128, page_block_size=16, seqlen_q=1, causal=0.
+Key corrections vs earlier drafts: case7 nkv=**8**, case11 nkv=**4**, case13 nkv=**8**.
+| case | batch | seqlen_k | nkv | type | iters |
+|------|-------|----------|-----|------|-------|
+| 1 | 1 | 1 | 4 | edge | 100 |
+| 2 | 4 | 2 | 8 | edge | 100 |
+| 3 | 16 | 17 | 4 | edge | 100 |
+| 4 | 64 | 64 | 8 | perf | 50 |
+| 5 | 16 | 141 | 4 | perf | 50 |
+| 6 | 16 | 362 | 8 | perf | 50 |
+| 7 | 64 | 2048 | **8** | perf | 12 |
+| 8 | 16 | 4096 | 4 | perf | 25 |
+| 9 | 32 | 4096 | 8 | perf | 12 |
+| 10 | 1 | 8192 | 4 | perf | 25 |
+| 11 | 16 | 12251 | **4** | perf | 12 |
+| 12 | 8 | 32768 | 8 | perf | 12 |
+| 13 | 1 | 58966 | **8** | perf | 25 |
+| 14 | 1 | 61519 | 4 | perf | 25 |
 
 Key facts: case 1 all sequences length 1. Every case >=1 seq at capacity; batch>1 also
 >=1 seq at length 1. num_blocks = batch*ceil(seqlen_k/16). Never read block_table padding.
@@ -152,11 +153,40 @@ where launch overhead dominates (launch floor ~4-12us).
 The best student kernel so far scores ~54 (agent_gen10_kernel.cu). You may start from it
 or from flash_attn. Applying E1-E11 well is how you go further.
 
-## VERIFIED 64.57-POINT CONFIGURATION (a student reached this on the real OJ)
-This is a working configuration distilled from a real OJ submission (64.57 pts, beats
-the 62.21 reference). Treat it as a validated starting point to IMPROVE, not copy code.
+## VERIFIED CONFIGURATION HISTORY (real OJ scores - the climb to beat)
+Each row is a REAL OJ submission; the lessons are cumulative and all verified on this HW.
 
-Architecture that scores ~64 on the real OJ:
+| version | OJ score | what changed / the lesson it taught |
+|---------|----------|-------------------------------------|
+| optimized_c500_flash_attn.cu | 62.21 | Original. **TRAP: it ships `EXP25_FORCED_SPLITS=128` default** which bypasses its own tuned split heuristic and forces ns=128 on every long case. Its real tuned heuristic (guarded by `#if EXP25_FORCED_SPLITS>0`) is ~5% better. Do NOT start from this kernel's default build. |
+| gen11b | 64.57 | V token-major VPAD=8, single vectorized store, no transpose (E4b) + merged-max softmax (E5b). |
+| merged | 64.93 | Per-(batch,kv,wu)-class split tuning + refined split arithmetic (E8/E9). |
+| **agentG_v2 (submission_agentG_v2.cu)** | **65.14** | **CURRENT BEST. START HERE.** V token-major VPAD=8, merged-max, split policy tuned per (batch,kv,work_units) class, bare `__builtin_mxc_mma_16x16x16bf16`, 64 thr/block, grid=(ns,batch*nkv). Has NO forced-split bug (clean arithmetic policy). |
+
+Per-case OJ profile of the 65.14 kernel (tk_ms, score) - targets to beat:
+1:(0.007,84) 2:(0.007,84) 3:(0.009,83) 4:(0.021,74) 5:(0.016,74) 6:(0.027,64)
+7:(0.238,54) 8:(0.079,58) 9:(0.237,57) 10:(0.048,57) 11:(0.203,55) 12:(0.397,59)
+13:(0.194,55) 14:(0.142,54). First place = 72.71.
+Weakest cases (biggest headroom, lowest speedup vs flash): 7/10/11/12/13/14 (~1.1-1.3x).
+
+Verified local sums (local bench_all.py, lower is better): agentG_v2=1610us, orig62=1960us.
+Rough OJ-score proxy: score ~ +1pt per ~50us of local-SUM reduction from 65.14.
+
+## CONFIRMED DEAD ENDS on this HW (all tested 2026-08~09, do not repeat blindly)
+- smem double-buffer software pipeline (2 K/V tiles): 152->176 regs (spill wall) OR
+  8->4 CTAs/SM if held in smem. NET REGRESSION on latency-bound cases. MLP via this
+  route fails; per-thread MLP must not grow regs past ~152.
+- Multi-kv-head per CTA (2-4 warps each staging own page): __syncthreads couples the
+  warps -> they can't overlap; neutral at best. Multi-warp CTAs lose independent
+  progress.
+- Forcing ns=128 (or any fixed large split) on small-batch/long-KV cases: oversubscribes,
+  split-0 page ranges become dead work, partial+combine traffic swamps gains (case 13
+  -25% vs tuned heuristic). Split choice MUST be the tuned arithmetic policy.
+- 2-kv-heads-per-block to "fill 16 MMA rows": impossible for GQA (different kv heads
+  need different K/V); rows waste is NOT the bottleneck (DRAM-latency bound).
+- Split micro-tuning to local random cache_seqlens: noise; OJ distribution differs.
+
+## What the current best (65.14) does - reproduce these exactly
 1. 64 threads/block = one MMA wave. Grid = (ns, batch*num_heads_k). Each block handles
    one (batch, kv_head) split over `gqa` query heads (gqa = 32/num_heads_k).
 2. Q: 8 tiles x 2 regs cached once (tile t reads dims t*16 + grp*4 .. +3, grp=lane>>4).
@@ -167,24 +197,34 @@ Architecture that scores ~64 on the real OJ:
 5. PV read: for output dim d, gather 4 tokens t0..t3 (t0=grp*4) as 2x uint16 LDS each
    and pack: word0 = V[t0][d] | V[t0+1][d]<<16, word1 = V[t2][d] | V[t3][d]<<16.
    (Must match the transposed layout's packing exactly.)
-6. Online softmax: merged-max, single alpha rescale (E5). Tail page masked.
-7. Split policy (arithmetic, no env): pages<=4 ->1; pages<=16 && wu>=32 ->3;
-   wu<=8 -> 64 if pages<=1024 else (batch==1 && kv==8 && pages>2000 ? 64 : 128);
-   else mult=(kv==8&&wu>=64&&pages>=200)?30:20, ns=round(mult*sqrt(pages*wu)/wu).
-   THEN tokens_per_split = ceil(pages/ns)*16, recompute ns.
+6. Online softmax: merged-max, single alpha rescale (E5b). Tail page masked.
+7. Split policy (arithmetic, no env): the per-(batch,kv,work_units) tuned policy in
+   run_kernel - pages<=4->1; pages<=16&&wu>=32->3; kv8 mid pages->sqrt rule;
+   wu<=8 (batch1)->64/90/148 by kv&pages; kv4 batch16 wu=64->22; kv8 wu=256->11;
+   kv8 wu=128->5; kv8 wu=512/256/64-> mult 10/30/10.5 sqrt rule. THEN tokens_per_split
+   = ceil(pages/ns)*16, recompute ns (balances per-batch short rows, never empty).
 8. Fused single path when ns==1 (write output directly). Combine kernel otherwise,
    one thread per 2 dims, online pass, skip empty splits.
 9. Compile: plain mxcc, NO mctlass/cute include needed (bare intrinsic works).
+10. Tail page per split range: only the final partial page is masked; steady state does
+    zero boundary work (E6). Never read block_table padding.
 
-Real-OJ per-case profile of this config (targets to beat):
-case13 (batch1 kv8 seq58966) is the weakest: ~1.03x flash. The kv8 large cases
-(7:1.25x, 9:1.37x, 12:1.40x) and case 6 (1.61x) have headroom. Edge 1-3 ~5.4x are
-near launch floor.
+## Where the headroom is (for beating 65.14)
+- All weak cases (7/10/12/13/14 and 9/11) sit at ~1.1-1.35x flash on OJ. flash itself is
+  ~0.7 of DRAM peak on batch1 long-context cases -> the GPU is NOT saturated; the kernel
+  is latency/occupancy limited, not bandwidth-limited.
+- Occupancy ceiling: 64-thr/8KB-smem CTAs are smem-capped at 8 CTAs/SM (512 thr). Raising
+  resident threads needs cutting smem/CTA (K in smem 4KB, V sourced differently) WITHOUT
+  breaking the E4b vectorized-store/conflict-free-read win and WITHOUT crossing ~152 regs.
+- Per-thread MLP across the page barrier without a register-expensive pipeline: issue the
+  NEXT page's K/V vector loads into smem BEFORE the current page's __syncthreads barrier
+  using a SMALL double-buffer (2 small tiles) that keeps 8+ CTAs/SM (E2 caution). This is
+  the untested lever that the reference (~72) likely uses on the long sweeps.
 
-Priority improvement directions (untested by this config):
-- case 13 (batch=1, kv=8): only 8 (batch,kv) units -> underfilled SMs. Try ns sweep
-  again near 64, or 2 kv_heads per block (gqa=8 total, 8 MMA rows used of 16) to
-  halve block count and double rows per block. smem stays ~same if you load one page
-  and read both kv heads' slices (they are different 128-col slices of the page).
-- Larger blocks (128 threads, 2 waves) sharing one staged page for kv8 cases.
-- Tune the mult/nv heuristics per (batch, kv) class with the real case table.
+Priority improvement directions (in order):
+- Cut smem/CTA to raise occupancy for cases 10/13/14 (batch1, underfilled).
+- Real MLP across the page barrier for cases 7/12/13/14 (long sweeps, latency-bound),
+  respecting the register wall.
+- Fix case 9's split (kv8 batch32 wu=256 wants ~ns 6-8 for 2 clean waves; current policy
+  picks 11 -> verify against local bench case 9 only, don't disturb 6/12).
+
