@@ -308,3 +308,19 @@ Priority improvement directions (in order):
 - Fix case 9's split (kv8 batch32 wu=256 wants ~ns 6-8 for 2 clean waves; current policy
   picks 11 -> verify against local bench case 9 only, don't disturb 6/12).
 
+
+## ROUND-5.5 CORRECTION + ROUND-6 STATE (2026-09-04)
+- Current best: submission_ov_safe.cu (67.07 OJ). = nomax + pid-prefetch + __syncwarp
+  (64-thread block = 1 warp; warp_size=64 confirmed via torch) + per-page l-shuffle +
+  TAIL-PATH __syncwarp (critical fix: ov's first version omitted it -> case4 OJ 20->48us;
+  case4 = batch64 ns=1 fused, mostly 1-page blocks = tail-path heavy).
+- case1/2 OJ 6->7us was measurement noise (local interleaved A/B: ov_safe FASTER than
+  nomax on both). Don't chase it.
+- CONFIRMED model (round-5, load-preserving ablations): long sweeps are DRAM-load-latency
+  / per-page-load-issue bound, NOT MMA bound (my earlier 427/254/38 probe was a DCE
+  artifact). Memory floor ~10%. Occupancy 7-8 CTAs/SM (smem 8576B, 64KB/SM).
+- Untried lever per round-5: RAISE CTAs/SM without breaking the padded layout. 8 CTAs
+  needs smem <=8192B. Options: (a) shrink K pad or V VPAD carefully (watch bank conflicts),
+  (b) 32-thread CTAs, (c) move some data out of smem.
+- ALL earlier dead ends still hold: full smem double-buffer (occupancy cliff), register
+  prefetch (spill ~152), load-batching (spill), multi-kv row-fill (B-tile shared).
