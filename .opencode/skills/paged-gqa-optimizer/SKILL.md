@@ -49,6 +49,26 @@ case 12 (batch=8, seq=32768, nkv=8) is DRAM-LATENCY bound: 0.94 TB/s achieved vs
 1.18 peak. Compute is idle (SFU/exp free), occupancy is fine (7 blocks/SM), splits don't
 matter beyond ~96. The fix must raise memory-level parallelism per thread.
 
+### E1b. HOW TO PROVE which resource binds (load-preserving ablations) - READ THIS
+A naive "component removal" probe is UNRELIABLE: deleting MMAs (or exp) lets the
+compiler dead-code-eliminate the loads that FEED them, so time collapses and you
+wrongly conclude "MMA-bound". (This exact mistake happened 2026-09-04: a
+"full 427us -> no-V-MMA 254 -> no-MMA 38us" probe was claimed as proof of MMA-bound;
+two independent agents later showed removing the MMAs while KEEPING the loads changes
+~nothing, and removing the global->smem stage drops 424->99-129us. The kernel is
+DRAM-load-latency/issue bound, NOT MMA bound.)
+CORRECT ablation method: keep every memory op (loads + smem stores + barriers + LDS)
+and only neutralize the CONSUMER (replace MMA with an op that keeps its inputs live,
+e.g. accumulate into a value that is used). Or remove one stage at a time while
+keeping the rest live. Validated breakdown on case 12 (~425us full):
+  removing global->smem stage (LDG+STS+barrier): ~99-129us  <- dominant cost
+  removing smem operand LDS (register-fed operands): ~85us
+  removing MMAs only (keep loads): no change.
+CONCLUSION for long sweeps: the exposed per-page global-load latency + the
+single-warp load->STS->barrier->LDS serialization is the binding constraint.
+The load latency is not hideable by register prefetch (+16-32 regs hits the 148/152
+spill wall) nor by full smem double-buffer (occupancy 8->4 CTAs/SM cancels it).
+
 ### E2. Software pipelining is THE lever for long sweeps, but watch the register wall
 A per-page serial chain [load page -> barrier -> compute page -> next] exposes DRAM
 latency at every barrier. The high-scoring kernel keeps loads in flight across the
@@ -162,7 +182,8 @@ Each row is a REAL OJ submission; the lessons are cumulative and all verified on
 | gen11b | 64.57 | V token-major VPAD=8, single vectorized store, no transpose (E4b) + merged-max softmax (E5b). |
 | merged | 64.93 | Per-(batch,kv,wu)-class split tuning + refined split arithmetic (E8/E9). |
 | **agentG_v2 (submission_agentG_v2.cu)** | **65.14** | **Prior best before round-2.** V token-major VPAD=8, merged-max, split policy tuned per (batch,kv,work_units) class, bare `__builtin_mxc_mma_16x16x16bf16`, 64 thr/block, grid=(ns,batch*nkv). Has NO forced-split bug (clean arithmetic policy). |
-| **nomax (submission_nomax.cu)** | ~66+ (est.) | **CURRENT BEST (round 2).** = agentG_v2 + **REMOVE the running max entirely** (see E5c). Local SUM 1517 vs 1608us (-5.7%). |
+| **nomax (submission_nomax.cu)** | **66.71** | **OJ-verified round-2 best.** = agentG_v2 + **REMOVE the running max entirely** (see E5c). Local SUM ~1508us. |
+| **ov (submission_ov.cu)** | ~68 (est.) | **CURRENT LOCAL BEST (round 5).** = nomax + pid-prefetch + __syncwarp + QK 64-bit LDS + cvt_pk + shuffle-defer + batch1 kv-fastest grid. Local SUM ~1449us (-4% vs nomax). NOT yet OJ-submitted. |
 
 ## E5c. THE no-running-max softmax (round-2 verified win, ~6%)
 The kernel tracks a running max m and rescales D,l each page. **For THIS benchmark it is
@@ -204,17 +225,38 @@ Rough OJ-score proxy: score ~ +1pt per ~50us of local-SUM reduction from 65.14.
 - smem double-buffer software pipeline (2 full K/V tiles = 16KB): halves CTAs/SM AND
   (round-2, gated to batch1) still REGRESSES badly (case 13: 401us vs 190us, 2.1x). The
   occupancy loss beats the latency hiding. Do NOT do smem double-buffer of full pages.
-- Multi-kv-head per CTA (2-4 warps each staging own page): __syncthreads couples the
-  warps -> they can't overlap; neutral at best. Multi-warp CTAs lose independent
-  progress.
+- Register prefetch / software pipeline across the page barrier (keep 1 page in smem,
+  LDG next page into regs during MMA, staggered): ALL regressed ~2-3x (v1-v4, register
+  prefetch variants) — mxcc spills past ~148-152 regs regardless. Do NOT.
+- Load-batching (all LDG then all STS): +regs -> spills -> 2x worse.
+- Multi-kv-head per CTA to "fill 16 MMA rows": impossible for GQA (single MMA's B/K-tile
+  is shared across all 16 A-rows; different kv_heads need different K). trackA2kv (merge
+  2 kv_heads, same MMA count) regressed 2.5x. Do NOT.
 - Forcing ns=128 (or any fixed large split) on small-batch/long-KV cases: oversubscribes,
-  split-0 page ranges become dead work, partial+combine traffic swamps gains (case 13
-  -25% vs tuned heuristic). Split choice MUST be the tuned arithmetic policy.
-- 2-kv-heads-per-block to "fill 16 MMA rows": impossible for GQA (different kv heads
-  need different K/V); rows waste is NOT the bottleneck (DRAM-latency bound).
+  split-0 page ranges become dead work, partial+combine traffic swamps gains. Split choice
+  MUST be the tuned arithmetic policy.
 - Split micro-tuning to local random cache_seqlens: noise; OJ distribution differs.
-- Per-page accumulator rescale deferral / batching: moot once the max is removed (E5c)
-  — there is no rescale at all anymore.
+  (Exhaustive per-case ns sweeps on case 7/10/13/14 confirmed the policy is already
+  optimal on the local randn distribution.)
+- No-V-smem + PV reading V direct from global: uncoalesced 2B gathers -> ~40% worse.
+- Per-page accumulator rescale deferral / batching: moot once max is removed (E5c).
+
+## ROUND-5 VERIFIED WINS (safe instruction-level, keep in current best submission_ov.cu)
+These shave the exposed per-page latency WITHOUT occupancy/register cost (all regs<152,
+smem 8.5KB, CTAs/SM unchanged). Combined ~4% SUM, 3-7% on perf cases 7-14:
+- Pid-prefetch: load next page's block_table pid (1 scalar LDG, 1 reg) during current
+  page's MMA, removing the serial pid->kbase/vbase dependency at each page's load.
+- __syncwarp() instead of __syncthreads(): the 64-thread block is ONE warp; a plain warp
+  sync suffices (removes block-barrier overhead).
+- QK K-smem read widened to one 64-bit LDS (K_b stride HEAD+2 -> HEAD+4 for 8B align),
+  splitting into 2 uint32 in regs. Halves QK operand-load instructions.
+- p->bf16 pack via __builtin_mxc_cvt_pk_f32tobf16 (fuses 2 converts + pack).
+- Defer the two __shfl_xor l-reductions out of the per-page loop to the epilogue
+  (nomax makes partials directly additive).
+- batch==1: swap grid to (kv-fastest, split-slowest) so the kv-CTAs reading the same
+  pages are co-resident (~2-4% on case 10/13/14).
+Everything else in the per-page loop (VPAD=8 token-major V, K row padding, MMA fragment
+mapping, split policy, combine) is unchanged and known-good.
 - Register-prefetch across the page barrier (keep 1 page in smem, LDG next page's
   vectors into regs during current MMA, staggered 4-at-a-time to limit live regs):
   v1-v4 ALL regressed ~2x (3100+us vs 1519), even after nomax freed registers. The
