@@ -102,3 +102,12 @@ D. 若 OJ 显示某 case 分布敏感(像之前 case11), 针对性调 tps/ns。
   but likely helps OJ. => candidate OJ experiment: set case11 ns=11, submit, compare.
 - case9 (b32 kv8): ns=11 optimal in both local and half-dist. No change.
 - Do NOT fold this into the committed kernel until OJ confirms (would regress local gate).
+
+## case 13 full-capacity = 174us at ns 64-90 = matches OJ 171us. AT STRUCTURAL FLOOR.
+- case13 (b1 kv8 58966) all-full at ns64/90 = 173.7us == OJ 171us. No headroom in this structure.
+- Achieved BW ~0.69 TB/s = only 46% of 1.5 peak. The kv-sliced read pattern (each of 8 kv-CTAs
+  reads a strided slice) caps batch1 bandwidth. Every attempt at contiguous full-page reads
+  (32KB smem -> 2 CTAs/SM; register staging -> spill; direct global -> uncoalesced) failed.
+- => batch1 cases (10/13/14) are at the structural floor of the kv-sliced design.
+- The reference (~72) must either share loads across kv-CTAs (grid-sync/cooperative, untried)
+  or have a different data layout. Not locally crackable with current approach.
