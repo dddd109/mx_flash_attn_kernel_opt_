@@ -86,6 +86,25 @@
 - 剩余服务器时间应投入: (a) 若有同事新 SOTA 则 diff 学习; (b) 微调 ns policy 用 OJ 真值;
   (c) 归档清理。若无新输入, 67.36 即终局。
 
+## ⚡⚡ 天花板确认 (2026-09-05 深夜, 主 session 决定性, 榜首更新为 72.79)
+> 用户指示: "到天花板就可以重构, 但必须确认真的到了。榜首现在 72.79 (+5.43pt)。"
+> 完整证据: /tmp/agent_ws/ceiling/CEILING_CONFIRMATION.md + ceiling_*.log
+
+- 硬件绝对 DRAM 读上限 ~1.55 TB/s (2GB 流, ≥184K 线程 plateau)。
+- case13 真 kernel 1.38 TB/s = **已超过任何纯读副本** (同集 contig max 1.22,
+  kvgrid max 1.23); case14 真 kernel 1.08 TB/s = **已超过纯读副本**
+  (同集 kv4-sliced max 0.98, contig max 0.99)。kernel 用 smem-mediated pacing +
+  7 CTA/SM 并发, 有效读率高于裸 LDG→reg 副本。
+- 读侧无余量。case14 的 1.08 vs case13 1.38 是 working-set/切片宽度 artifact, 非 kernel 缺陷。
+- L2 (8MB) 无同线复用不可用; 寄存器/occupancy/smem 2-page 全部机械关闭 (session4)。
+- **判定: 当前结构数据移动到架构天花板。67.36→72.79 需要结构性不同 dataflow**:
+  (b) 更宽/更连续的 DRAM 事务且不丢 smem-mediated MLP (历史大块/warp-spec 全败);
+  (c) 算法级: gqa 复用 (同 kv 的多个 q head 共享一次已加载页) / 跨 head 共享。
+  微调旋钮全噪声, 勿再试。
+- 决策: 值得重构 **仅当** concrete (b)/(c) 设计 micro-probe 存活。专职 agent 分头猎。
+  新 agent 工作区: /tmp/agent_ws/{agentA_read,agentB_struct,agentC_policy},
+  交接总文档 /tmp/agent_ws/HANDOFF.md。
+
 ## 协作注意
 - GPU 共享, interleaved A/B 必须。机器状态波动大(绝对 TB/s 跨分钟不可比)。
 - 提交物规范: verify_real.py 全过(edge 1-3 match 1.0) + bench_all.py SUM。
