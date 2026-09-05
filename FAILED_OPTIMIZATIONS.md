@@ -166,3 +166,17 @@ All optimization attempts below **FAILED** to improve performance. The baseline 
   reading from the all-kv buffer with per-kv column offsets. Unfinished (large change
   to MMA smem operand access + bank-conflict-free layout in the all-kv buffer).
 - File: submission_contig.cu (dispatch batch1->scalar-contig, else MMA). Correct but slow.
+
+## 2026-09-05 FINAL: 2-kv-per-CTA MMA = correct but SLOWER (occupancy wall)
+- Built 2-kv-per-CTA MMA kernel (reads 512B/token contiguous, ALL 14 PASS).
+- Result: 4962us vs ov_safe 1466us. WORSE on every big case (case13 800 vs 178us).
+- ROOT CAUSE: smem 8.5KB->17KB drops CTAs/SM 7->3; the occupancy/MLP loss swamps the
+  wider-read DRAM gain. Same story as every multi-kv / full-page attempt.
+- COMBINED with scalar-FMA (35x slower) + async-bsm (broken) + occupancy wall (7 CTAs/SM)
+  + register/pipeline walls: the 67.07 kernel IS at the practical limit of this
+  architecture + toolchain. The contiguous-read DRAM prize (1.5 vs 0.7 TB/s) is real but
+  structurally UNREACHABLE without a different data layout or cross-CTA smem sharing that
+  this hardware/toolchain does not support.
+- FINAL: submission_clean.cu (== submission_ov_safe, 67.07 OJ) is the canonical best.
+  submission_ov_safe.cu remains the OJ-proven reference. Honest ceiling ~67-68 without a
+  fundamentally new approach.
