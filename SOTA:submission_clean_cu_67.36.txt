@@ -1,0 +1,9 @@
+# submission_clean.cu (with case14 ns=100 + vectorized combine) = 67.36 OJ - NEW BEST
+case: (tk_ms, tb_ms, score)
+1:(0.007,0.038,84) 2:(0.007,0.038,84) 3:(0.009,0.047,83) 4:(0.019,0.061,75)
+5:(0.015,0.047,75) 6:(0.024,0.049,67) 7:(0.204,0.299,57) 8:(0.071,0.108,60)
+9:(0.207,0.329,60) 10:(0.037,0.064,63) 11:(0.182,0.261,57) 12:(0.352,0.572,61)
+13:(0.169,0.230,58) 14:(0.115,0.171,59)
+# vs ov_safe(67.07): +0.29 total. case7 0.213->0.204, case9 0.213->0.207, case10 0.038->0.037,
+# case14 0.120->0.115 (ns100 works on OJ!), case13 0.171->0.169. All improved or equal.
+# Changes: clean refactor (identical policy) + case14 ns 148->100 + combine vectorization.
