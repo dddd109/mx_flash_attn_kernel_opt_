@@ -122,3 +122,14 @@ smaller smem, (c) accepting ~390us MMA and overlapping the 38us memory perfectly
 - pat2 (r10_persist): contiguous full-page reads = 1.5 TB/s on case13 geometry.
 - => The kernel MUST read contiguously. case13 ceiling ~80-110us (now 170us). Score 58->~70.
 - Multiple crash-restarts killed agent dispatches; I will BUILD the contiguous kernel directly.
+
+## 2026-09-05 (overnight, SSH now stable)
+- All S1-S4 structural rewrites (GEMM/warp-spec/bigblock/gridsync) FAILED vs 67.07 baseline.
+  S4 corrected the picture: case13 baseline = 1.38 TB/s (NOT 0.7, earlier probe flawed), pure
+  stream ceiling 1.82 TB/s -> case13 at 76%, gap is MLP not read-pattern. All MLP-raising
+  attempts lose more to occupancy/sync than gain.
+- LOCAL WIN: case14 ns 148->100 (best local, case14 123->118us; 120 also ok). c11ns11 lesson
+  says local ns may not transfer -> kept as submission_var_c14ns100.cu OJ-experiment.
+- Combine micro-opt (float4 reads + l precompute) folded into submission_clean.cu (neutral-to-tiny).
+- case10/13 ns re-swept after combine-opt: still optimal at 64/90. No further ns changes.
+- 67.07 remains the ceiling for the MMA design; c14ns100 is the only small candidate.
