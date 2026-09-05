@@ -359,7 +359,7 @@ static inline int64_t choose_num_splits(int64_t batch_size, int64_t num_heads_k,
      * fewer splits than kv4 at extreme length. */
     if (wu <= 8) {
         if (pages <= 1024) return 64;
-        return (num_heads_k == 8) ? 90 : 148;
+        return (num_heads_k == 8) ? 90 : 100;
     }
 
     /* Regime E - wide kv4 batches (wu=64): 22-way split balances the many
