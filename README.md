@@ -7,9 +7,9 @@
 4. **`OJ_BASELINE.md`** ← 各版本 OJ 实测分数对照
 
 ## 若要继续优化 kernel（读这些）
-- `.opencode/skills/paged-gqa-optimizer/SKILL.md` ← 教学 skill（含已验证的 64 分配置 + 11 条经验）
-- `submission_agentG_v2.cu` ← 当前最佳 kernel（65.14 分，可直接提交）
-- `submission_merged.cu` ← 上一版（64.93）
+- `.opencode/skills/paged-gqa-optimizer/SKILL.md` ← 教学 skill（含已验证配置 + 经验）
+- `submission_ov_safe.cu` ← 当前最佳 kernel（67.07 分 OJ 实测）
+- `submission_c11ns11.cu` ← case11 ns 实验版（待 OJ A/B）
 
 ## 历史文档（仅深入排查时才读，勿全读）
 | 文件 | 内容 |
@@ -25,7 +25,9 @@
 - 原版 optimized_c500_flash_attn.cu = **62.21**
 - submission_gen11b.cu = 64.57
 - submission_merged.cu = 64.93
-- **submission_agentG_v2.cu = 65.14（当前最佳）**
+- submission_agentG_v2.cu = 65.14
+- submission_nomax.cu = 66.71
+- **submission_ov_safe.cu = 67.07（当前最佳）**
 - 第一名 = 72.71
 
 ## 协作须知
