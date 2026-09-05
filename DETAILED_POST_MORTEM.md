@@ -189,3 +189,144 @@
 - 方法: interleaved A/B / 先 verify 再信 speedup / 负结果带机制 / 大重构前估成本
 - 流程: 基线必须最新 / 文件-分数显式映射 / OJ 提交珍惜 / 并行 agent ≤2 / 原生 SSH
 - 工具: mxcc 命令 / warp=64 / MMA fragment / bsm 损坏 / 寄存器墙 152
+
+---
+
+# 附1: 我(主agent/协调者)的失误清单 — 每个错→根因→避免方法
+
+> 阶段 B 我直接主导, 以下是我的真实错误。每个都造成了实际代价(时间/方向/误判)。
+> 按代价排序。
+
+## 失误1: DCE 假象误判瓶颈为 "MMA-bound" (代价: ~1 天方向跑偏)
+- **错**: 删 MMA 探针 (427→254→38us) 断言 kernel 是 MMA-throughput bound, 行利用率
+  25/50% 是杠杆, 并把结论写进 CONTEXT 当"突破"。
+- **根因**: 删掉 consumer(MMA) 后编译器 DCE 掉喂它的 load → 时间暴跌, 与真实瓶颈无关。
+  我把它当决定性证据, 还让 r5 两个 agent 盲从这个 "verified background"。
+- **后果**: 浪费约一天在"填 16 行/多 kv 打包"上(架构不可能), 直到 r5 agent 用
+  load-preserving 消融推翻。
+- **避免**: 探针必须保留内存副作用(累加进被使用的值)。任何"删 X 时间大降"的结论,
+  先怀疑是不是 DCE。给 agent 的 background 写"待验证假说"而非"已验证事实"。
+
+## 失误2: 给 subagent 的基线不是最新最佳 (代价: 整轮 r1 白跑)
+- **错**: round 1 让 3 个 agent 从旧 62.21 基线出发优化, 没意识到 agentG_v2(65.14) 才是
+  当前最佳 → 他们最好也只到 ~66 本地, 全被 65.14 压住。
+- **根因**: 接手时只读了 README(说 65.14 最佳) 但工作区默认内核是旧的; 没先确认
+  "最新最佳 = 哪个文件" 就派活。
+- **避免**: 每次派 agent 前, 先本地编译验证并确认基线文件 == 当前 SOTA 文件
+  (grep 版本特征/跑 verify)。建立 FILE_MAP 后这问题可杜绝。
+
+## 失误3: 把 run-to-run 噪声当真实信号 (代价: 多次错误决策)
+- **错**: (a) c14ns100 我断言 OJ +1 分是 ns 效果; (b) 早期把 case1/2 的 6→7us 当回归追查;
+  (c) 一度把 67.36 vs 67.21 当确定差异。事后证明 case7/9 有 ±0.01ms=±1 分 run 噪声,
+  67.36/67.21 基本是同一 kernel 的两次采样。
+- **根因**: OJ 单次提交只有一次采样, 我把它当精确测量; 本地多次 interleaved 是准的,
+  但 OJ 的 ±1 分噪声被忽略。
+- **避免**: OJ 结论需至少 2 次提交确认才下"有效/无效"; 单 case 变 1 分不采信,
+  要 case 级 tk 变化 + 跨 case 一致性。ns 微调这类本来就该当噪声处理。
+
+## 失误4: 同步语义改动漏了分支 (代价: 一次 OJ 事故 65.7)
+- **错**: ov 把 __syncthreads→__syncwarp 只改了主循环, tail(部分页)路径漏改 →
+  tail 无屏障竞态 → case4(batch64/ns1/多单页) 从 0.020 涨到 0.048, 总分 65.7。
+- **根因**: 机械替换同步原语时没全局审计所有代码路径; 且 case4 的退化在本地
+  任何分布都复现不出(本地全过), 只有 OJ 暴露。
+- **避免**: 同步/内存序改动必须 grep 所有调用点; 结构性改动即使本地 14/14 过,
+  也要警惕"只在特定 shape/occupancy 下触发的竞态"。tail/fused/partial 三条路径分开审。
+
+## 失误5: 环境崩溃时反复开并行 agent 烧预算
+- **错**: 服务器崩了多次(终端/TUI 问题), 每次崩后我立刻又并行开 5 个 agent →
+  它们永远停在 setup, 白烧; 崩在 dispatch 瞬间。
+- **根因**: 没认识到崩溃与"高并行 dispatch"相关; 没先降并行度验证稳定性。
+- **避免**: 环境不稳时并行 ≤2; 崩后先单 agent 验证稳定性再扩; 重要探索自己直接做
+  而非依赖 agent(崩溃免疫)。
+
+## 失误6: 文档漂移不同步 (被用户点名)
+- **错**: CONTEXT/DECISIONS/SKILL 三处模型不一致(如 MMA-bound 结论只在 CONTEXT,
+  skill 还是旧的 DRAM 模型), 用户和同事都因此困惑/被误导。
+- **避免**: 每次模型级结论必须同时更新三处 + 标注日期; 建立单一事实源。
+
+## 失误7 (轻度): 上传/推送隐患
+- remote URL 含明文 token 留在历史(同事提醒)。提交了 build 产物(.so/.o/.db)。
+- **避免**: 用 credential helper; .gitignore 严格; push 前 git status 检查。
+
+---
+
+# 附2: 如果重来 — 从第一天起的最优路径
+
+## Day-0 checklist (拿到 GPU 第一天)
+1. 确认当前 SOTA 文件 + 最新基线 (FILE_MAP), 本地编译 verify + bench 建锚点。
+2. 用 load-preserving 探针**一次定位**瓶颈: case13 到底在带宽哪个位置。
+3. 验证 async/cp.async 在评测机是否真可用 (这是第一名 72 vs 我们 67 的最大未知道路)。
+4. 决定根本路线: MMA+smem(我们走的路, 封顶 ~67) vs 其它数据流。
+
+## 该跳过的探索 (已经证死, 不要再花时间)
+- ns/split 微调(噪声级, OJ 上不可预测) — 只做一次 OJ A/B 确认即可。
+- smem double-buffer / 寄存器预取流水(mxcc 寄存器墙 152, 必崩)。
+- 8 CTAs/SM 尝试(去 pad → bank conflict, 必输)。
+- async bsm 深挖(mxcc 损坏, MetaX 自己也关)。
+- scalar/FMA 路径(慢 MMA 5x)。
+- 多 kv/大块 CTA/warp 专用化/grid 同步(occupancy/同步开销全输)。
+
+## 该重点投入的 (若有下次)
+- **尽早拿到评测机的真实 async 能力** + 参考 kernel 的读结构(而非自己猜)。
+- 微优化(向量化/去转置/softmax 域)是安全累加, 但总量 ~5%。
+- 教学/复现验证若仍是目标, 隔离与上下文预算从第一天就做对。
+
+---
+
+# 附3: 同事/协作复盘
+
+## 协作结构
+- 多人共用 github dddd109/mx_flash_attn_kernel_opt_, 靠 SOTA*.txt 名字带分数同步。
+- 早期教学阶段(gen/teacher 机制)与 GPU 阶段(我)由不同人接力。
+- 同事贡献: gen/teacher 阶段全程、agentH 尝试(被中断)、后期 skill/代码意见
+  (如"整理代码去 case hacking")、以及发现 skill 未随版本更新。
+
+## 协作中的问题与教训
+1. **交接文档是唯一记忆**: CONTEXT_BACKUP/HANDOFF 记了"同事也在优化, 先 git pull",
+   但 pull 网络不稳导致信息滞后, 有过 SOTA 认知偏差。
+2. **文件-分数混淆是多人协作的通病**: 同一个名字(clean)在不同人手里是不同 ns 版本,
+   必须 FILE_MAP + 提交前 grep 核对。
+3. **skill 漂移**: 同事指出 skill 停留在旧模型(case12 DRAM 等)没随真实 probe 更新 —
+   教训: 教学文档和实战结论要双向同步。
+4. **明文 token 风险**: remote URL 带 token 在 git 历史, 同事提醒轮换 — 协作仓库
+   安全卫生要早做。
+
+---
+
+# 附4: 按天时间线 (比赛全周期)
+
+> 早期(08-29~09-02)教学 skill 迭代阶段细节主要来自归档文档, 日期为文件标注。
+
+## 08-29 ~ 08-30: skill 教学体系建立 (SESSION_NOTES)
+- 调研 MetaX C500 软件栈(mctlass/cute/mxcc/mcTriton), 初版 skill。
+- skill v1→v4 迭代: 教 agent 写自定义 kernel, 修 Triton 尝试的 bug。
+- 建立基准: flash_attn baseline ~50 分, 优化后 ~80-90us local(5-6x)。
+
+## 09-03 (或前后): gen 系列至 65.14 (无 GPU)
+- gen1(51)→gen2(61 假分数)→gen3(18.7 灾难)→gen4/5(61 守成)→gen6-8(~53 真实)→
+  gen9/10(54.2)→gen11(V转置突破)→64.57(gen11b OJ)→64.93(merged OJ)→65.14(agentG_v2 OJ)。
+- 期间: 教师实验 H1/H5/H6、假分数修正(gen6-9 "61" 实为 ~53)、case 表 SPJ 确认。
+- SOTA: gen11b 09-03, merged 09-03。
+
+## 09-04: GPU 可用 → 阶段 B 开始 (65.14 → 67.07)
+- 早: 建本地闭环(compile/verify/bench), 修 case 表, 建 CONTEXT/DECISIONS。
+- r1: agent 从旧基线(教训)。r2: nomax 突破 → 66.71 OJ。服务器崩 2 次。
+- r3: 死路确认。我自己探针误判 MMA-bound(失误1), 深挖 fragment, 被 r5 推翻。
+- r4-5: ov 合成(本地 1449)。ov OJ 65.7(case4 事故, 失误4) → ov_safe 67.07。
+- 深夜: r6/r7 结构穷尽(全死路), 联网挖 MetaX 自家 kernel, bsm 确认损坏。
+- 用户休息, 我自主继续。
+
+## 09-05: 冲刺与收官 (67.07 → 67.36)
+- 白天: clean 重构(去 case hacking, 用户队友要求) + combine 向量化 + case14 ns100。
+- c11ns11 OJ 负结果确认。67.36 OJ 记录(clean)。
+- 用户陆续提交 c13ns64b(机器负载噪声 65.71)。
+- 重大澄清: 67.36 vs 67.21 是 case7/9 噪声(失误3)。
+- 比赛结束(约 09-05 下午): 最终 67.36。整理仓库 + 多份复盘文档 + push。
+
+---
+
+# 附5: 一句话总结
+
+**技术天花板是 MMA+smem 设计在 mxcc 上的 ~67; 距离第一名 72 的差距本质是
+"参考 kernel 有我们未复现的读取/异步能力或完全不同的数据流"。流程上最贵的三课:
+探针要 load-preserving(失误1)、基线必须最新(失误2)、OJ 噪声别当信号(失误3)。**
