@@ -1,34 +1,29 @@
-# MX FlashAttention Kernel Optimization - 项目导航
+# MX FlashAttention Paged GQA Decode Kernel — 项目导航
 
-## 📌 新 session 必读（按顺序，只需这 4 个）
-1. **`WORKFLOW.md`** ← 详细操作流程（无 GPU 循环：改→编译→提交→分析）
-2. **`HANDOFF_NEXT_SESSION.md`** ← 当前处境、分数、教训、下一步
-3. **`task.md`** ← OJ 赛题描述（接口、case 表、评测）
-4. **`OJ_BASELINE.md`** ← 各版本 OJ 实测分数对照
+## 📌 新 session 必读（按顺序）
+1. **`OPTIMIZATION_LOG.md`** ← 完整优化日志：时间线/版本/分数/技术细节/决策/教训
+2. **`task.md`** ← OJ 赛题描述（接口、case 表、评测）
+3. **`CONTEXT.md`** ← 当前处境、约束、开放问题（每步更新）
+4. **`DECISIONS.md`** ← 决策日志（含负结果，防重复踩坑）
 
-## 若要继续优化 kernel（读这些）
-- `.opencode/skills/paged-gqa-optimizer/SKILL.md` ← 教学 skill（含已验证配置 + 经验）
-- `submission_ov_safe.cu` ← 当前最佳 kernel（67.07 分 OJ 实测）
-- `submission_c11ns11.cu` ← case11 ns 实验版（待 OJ A/B）
+## 提交物
+| 文件 | 分数(OJ) | 说明 |
+|---|---|---|
+| **`submission_clean.cu`** | **67.36** | **当前最佳（最终提交）**。case13 ns90 / case14 ns100 + combine 向量化 + 干净 regime split policy |
+| `submission_ov_safe.cu` | 67.07 | 上一版（case4 修复 + pid预取/syncwarp/cvt_pk） |
+| `optimized_c500_flash_attn.cu` | 62.21 | 原始参考（含 EXP25_FORCED_SPLITS=128 陷阱，勿用默认） |
 
-## 历史文档（仅深入排查时才读，勿全读）
-| 文件 | 内容 |
-|------|------|
-| `CONTEXT_BACKUP.md` | 完整技术细节 + case 表 + 评分 |
-| `GEN11_BREAKTHROUGH.md` | V 转置消除（最大技术突破） |
-| `GEN_STRUCTURAL_DIFF.md` | 参考 kernel vs student 结构差异分析 |
-| `AGENT_FEEDBACK_INTEGRATION.md` | 历代 agent 经验汇总 |
-| `CORRECTED_BENCHMARK.md` | 修正后 benchmark 数据 |
-| `SOTA:*.txt` | 各版本 OJ 分数记录 |
+## 目录结构
+- `archive/agents/` — 历代 agent 内核 (gen6-gen11, merged, agentG_v2, nomax, ov 等)
+- `archive/experiments/` — 实验内核（FMA/连续读/kv2/contig/c13ns64/c7ns8/c14ns120 等，均未超最佳）
+- `archive/history/` — 历史文档 (GEN*_RESULTS/NOTE, WORKFLOW, SESSION_NOTES 等)
+- `SOTA:*.txt` — 各版本 OJ 逐 case 记录
+- `.opencode/skills/paged-gqa-optimizer/SKILL.md` — 教学 skill
+- `bench_all.py` / `verify_real.py` — 本地全量计时 / 14-case 正确性（SPJ-confirmed case 表）
 
 ## 分数里程碑
-- 原版 optimized_c500_flash_attn.cu = **62.21**
-- submission_gen11b.cu = 64.57
-- submission_merged.cu = 64.93
-- submission_agentG_v2.cu = 65.14
-- submission_nomax.cu = 66.71
-- **submission_ov_safe.cu = 67.07（当前最佳）**
-- 第一名 = 72.71
+- 62.21 → 64.57 → 64.93 → 65.14 → 66.71 → 67.07 → **67.36 (submission_clean.cu)**
+- 第一名 = 72.71（结构上需新洞察，未达到）
 
 ## 协作须知
 - 远端: github dddd109/mx_flash_attn_kernel_opt_（同事也在优化）
