@@ -154,3 +154,15 @@ All optimization attempts below **FAILED** to improve performance. The baseline 
 - => ov_safe (67.07) CONFIRMED as the robust best. All structural levers exhausted:
   occupancy (smem wall), async bsm (broken), multi-kv/multi-unit CTA (slower), register/
   smem pipeline (spill/occupancy), split tuning (optimal or OJ-noise).
+
+## 2026-09-05: scalar-FMA contiguous kernel = CORRECT but 35x SLOWER (definitive)
+- Built a 2-pass scalar-FMA kernel reading pages/tiles contiguously (validates the
+  contiguous-read bandwidth idea AND the memory structure). ALL 14 PASS (match 1.0).
+- But case13 = 6240us vs MMA 174us (35x slower). Scalar FMA (per-element bf16->fp32
+  multiply in 32-deep serial loops) is ~100x slower than the 16x16 MMA. CONFIRMED:
+  the MMA hardware is essential; cannot drop to scalar.
+- => The contiguous-read win MUST keep the MMA. The design that could work: 8-token
+  tiles (16KB contiguous for kv8) + single 16KB buffer reused K-then-V + MMA QK/PV
+  reading from the all-kv buffer with per-kv column offsets. Unfinished (large change
+  to MMA smem operand access + bank-conflict-free layout in the all-kv buffer).
+- File: submission_contig.cu (dispatch batch1->scalar-contig, else MMA). Correct but slow.
