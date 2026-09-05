@@ -26,6 +26,13 @@
 #include <cuda_runtime.h>
 #include <math.h>
 
+__device__ __forceinline__ uint64_t pack4(float a, float b, float c, float d) {
+    __nv_bfloat16 ba = __float2bfloat16(a), bb = __float2bfloat16(b);
+    __nv_bfloat16 bc = __float2bfloat16(c), bd = __float2bfloat16(d);
+    return ((uint64_t)(unsigned short&)bd << 48) | ((uint64_t)(unsigned short&)bc << 32) |
+           ((uint64_t)(unsigned short&)bb << 16) | (uint64_t)(unsigned short&)ba;
+}
+
 #define HEAD 128
 #define PAGE 16
 #define FULLMASK 0xffffffffffffffffull
@@ -286,28 +293,29 @@ __global__ void combine_kernel(
     const int b = blockIdx.x;
     const int kv = blockIdx.y;
     const int tid = threadIdx.x;
-    const int hh = tid >> 6;
-    const int d2 = tid & 63;
+    const int hh = tid >> 5;
+    const int c4 = tid & 31;
     const int base = (b * num_heads_k + kv) * n_splits;
     const int seqlen = cache_seqlens[b];
     int nsplit_eff = (seqlen + tokens_per_split - 1) / tokens_per_split;
     if (nsplit_eff > n_splits) nsplit_eff = n_splits;
 
-    float l = 0.f, acc = 0.f, acc2 = 0.f;
-    const int dim = d2 * 2;
-    const int dim2 = dim + 1;
+    /* precompute l (same for all dims of a head) */
+    float l = 0.f;
+    for (int s = 0; s < nsplit_eff; s++)
+        l += l_part[(base + s) * gqa + hh];
+
+    /* vectorized float4 accumulate over 4 dims per thread */
+    float4 A = make_float4(0.f, 0.f, 0.f, 0.f);
+    const int dim4 = c4 * 4;
     for (int s = 0; s < nsplit_eff; s++) {
-        int idx = base + s;
-        float ls = l_part[idx * gqa + hh];
-        const float* ap = &acc_part[(idx * gqa + hh) * HEAD + dim];
-        acc += ap[0];
-        acc2 += ap[1];
-        l += ls;
+        const float4 a = *(const float4*)&acc_part[((base + s) * gqa + hh) * HEAD + dim4];
+        A.x += a.x; A.y += a.y; A.z += a.z; A.w += a.w;
     }
     if (hh < gqa) {
+        float inv = 1.0f / l;
         __nv_bfloat16* op = output + (b * num_heads + kv * gqa + hh) * HEAD;
-        op[dim] = __float2bfloat16(acc / l);
-        op[dim2] = __float2bfloat16(acc2 / l);
+        *(uint64_t*)&op[dim4] = pack4(A.x * inv, A.y * inv, A.z * inv, A.w * inv);
     }
 }
 
@@ -450,7 +458,7 @@ extern "C" void run_kernel(
         tokens_per_split, (batch_size == 1));
 
     dim3 grid2((unsigned)batch_size, (unsigned)num_heads_k);
-    combine_kernel<<<grid2, (unsigned)(gqa * 64)>>>(
+    combine_kernel<<<grid2, (unsigned)(gqa * 32)>>>(
         l_part, acc_part, cache_seqlens, output,
         (int)num_heads, (int)num_heads_k, ns, gqa, tokens_per_split);
 }
