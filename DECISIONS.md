@@ -133,3 +133,11 @@ smaller smem, (c) accepting ~390us MMA and overlapping the 38us memory perfectly
 - Combine micro-opt (float4 reads + l precompute) folded into submission_clean.cu (neutral-to-tiny).
 - case10/13 ns re-swept after combine-opt: still optimal at 64/90. No further ns changes.
 - 67.07 remains the ceiling for the MMA design; c14ns100 is the only small candidate.
+
+## 2026-09-05 重大澄清 (提交慢期间复盘)
+- 67.36 vs 67.21 的分数差在 case7(57vs56)+case9(60vs59), 不在 case14(都是59).
+  case7/9 的 tk 波动 0.204/0.213 是 run-to-run 噪声 (±0.01ms=±1分), 非 ns 差异.
+- => "case14 ns100 提升" 的判断被高估; 实际可能是噪声 + 小真增益混合.
+- 教训再次验证: ns 微调在 OJ 是噪声级. 别再押注 ns 实验.
+- 唯一确定改进: combine 向量化(无回归). clean 是均值最优提交.
+- 结构性大提升(72.71)需要目前未找到的洞察; 剩余时间应聚焦稳定提交而非 ns 赌博.
