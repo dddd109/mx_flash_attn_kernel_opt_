@@ -115,3 +115,10 @@ smaller smem, (c) accepting ~390us MMA and overlapping the 38us memory perfectly
   hit case4 hardest. Fix: add __syncwarp() after stage_page in the tail path.
 - ov_safe = ov + per-page l-shuffle (revert the risky deferral) + tail syncwarp fix.
   Local SUM 1460us vs nomax 1515 (-3.6%), vs buggy ov 1454 (equal). RESUBMIT ov_safe.
+
+## 2026-09-05 (CONFIRMED breakthrough: read pattern is THE bottleneck)
+- microbench R0-R4 (r10_l2): kv-sliced strided reads = 0.37 TB/s; R2(R2/R0=0.915) proved
+  it's the ACCESS PATTERN not DRAM volume/L2/phase; R3 linear contiguous = 1.59 TB/s.
+- pat2 (r10_persist): contiguous full-page reads = 1.5 TB/s on case13 geometry.
+- => The kernel MUST read contiguously. case13 ceiling ~80-110us (now 170us). Score 58->~70.
+- Multiple crash-restarts killed agent dispatches; I will BUILD the contiguous kernel directly.
