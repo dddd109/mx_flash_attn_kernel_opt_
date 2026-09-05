@@ -1,0 +1,10 @@
+# submission_c11ns11.cu = 67.07 OJ (NEGATIVE result: case11 ns 22->11 did NOT help)
+case: (tk_ms, tb_ms, score)
+1:(0.007,0.037,84) 2:(0.007,0.039,84) 3:(0.009,0.044,83) 4:(0.019,0.060,75)
+5:(0.014,0.046,76) 6:(0.024,0.050,67) 7:(0.212,0.309,56) 8:(0.071,0.108,60)
+9:(0.213,0.328,59) 10:(0.038,0.064,62) 11:(0.194,0.260,56) 12:(0.358,0.586,61)
+13:(0.170,0.240,58) 14:(0.120,0.172,58)
+# ANALYSIS: vs ov_safe(67.07): case11 ns 22->11 made case11 WORSE (187->194us, 57->56).
+# ns=22 (original) was already correct for case11. case5 +1 = tb noise (0.047->0.046).
+# => REVERT c11ns11. ov_safe remains the only best at 67.07. Split policy unchanged.
+# Also note: case12 improved again 360->358us, case13 171->170us (drift/noise ~1%).
