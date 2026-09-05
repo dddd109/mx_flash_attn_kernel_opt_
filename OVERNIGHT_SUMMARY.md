@@ -23,3 +23,11 @@
 ## 推荐 OJ 提交顺序
 1. submission_var_c14ns100.cu（最有希望的实验）
 2. submission_clean.cu（67.07 + combine 优化 + 去 case-hacking，理论 ≥67.07）
+
+## 最终冲刺补充 (2026-09-05)
+- 文件-分数映射已建 FILE_MAP.txt。
+- 所有 case 的 ns 用 combine-opt kernel 全部复核最优: case7=5, case8=22, case9=11, case10=64,
+  case11=22, case12=59, case13=64≈90(平), case14=100。唯一在途实验: c13ns64b (case13 ns64)。
+- 若 c13ns64b OJ >=67.36: 合入 clean (case13 ns64 + case14 ns100) 为新 canonical。
+- 若 =67.36: case13 ns 无所谓, clean 保持 90。
+- 若 <67.36: case13 ns90 更好, clean 保持 90。
