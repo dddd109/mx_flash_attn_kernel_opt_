@@ -116,3 +116,15 @@ CONTEXT/DECISIONS/SKILL immediately (they drifted out of sync).
   Safe to delete.
 - Repo build/*.so are gitignored build artifacts (nomax/ov_safe/c11ns11/orig62) - keep
   for local A/B but not committed.
+
+## 2026-09-05 状态 (用户回来说 c11ns11 = 67.07, 无提升)
+- c11ns11 (case11 ns 22->11) OJ NEGATIVE: case11 187->194us WORSE. REVERTED to ov_safe.
+  => submission_ov_safe.cu = 67.07 is THE confirmed best. Split policy all correct.
+- r7 dead ends: multi-unit/all-kv CTA slower (1510-1523 vs 1455); DRAM micro-probes show
+  kv-sliced co-read aggregate can reach ~2.6TB/s in theory but real kernel ~0.69 on batch1
+  is the structural reality with current occupancy/splits.
+- ALL structural levers exhausted: occupancy (smem 8576B wall, pad-cut bank-conflicts),
+  async bsm (broken on mxcc), register/smem pipelining (spill/occupancy), multi-kv/multi-
+  unit CTA (slower), full-page smem (occupancy), split tuning (optimal or OJ-noise).
+- The 67.07 kernel is at the practical architecture limit. First place 72.71 likely uses a
+  different data layout or algorithm not reachable via incremental changes on this design.
