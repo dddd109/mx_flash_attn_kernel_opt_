@@ -141,3 +141,11 @@ smaller smem, (c) accepting ~390us MMA and overlapping the 38us memory perfectly
 - 教训再次验证: ns 微调在 OJ 是噪声级. 别再押注 ns 实验.
 - 唯一确定改进: combine 向量化(无回归). clean 是均值最优提交.
 - 结构性大提升(72.71)需要目前未找到的洞察; 剩余时间应聚焦稳定提交而非 ns 赌博.
+
+## 2026-09-05 终局: c13ns64b OJ 65.71 = 机器负载噪声(不可信)
+- c13ns64b 只改 case13 ns(90->64), 但 OJ 上 case4/6/7/9/10/12 全退化(这些代码没动).
+  => 纯机器负载噪声(提交慢几十倍佐证). case13 本身 0.173 与 clean 一致 -> ns64 无效果.
+- 结论: clean(case13 ns90, case14 ns100) 是正确最佳. c13ns64b 丢弃.
+- 所有 ns 实验全部收敛: 要么最优, 要么噪声级无差异. ns 不是提分杠杆.
+- 最终: submission_clean.cu = 67.36 (case13 ns90 / case14 ns100 + combine向量化). 
+  真实最佳. 结构性提升需新洞察(未找到).
