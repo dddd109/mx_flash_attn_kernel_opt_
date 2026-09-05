@@ -144,3 +144,13 @@ All optimization attempts below **FAILED** to improve performance. The baseline 
 - => cp.async/bsm MLP is NOT the reference's lever, or not reproducible here. CLOSED.
 - SOTA stands: submission_ov_safe.cu = 67.07 OJ. Remaining gains must come from
   non-async structural ideas.
+
+## 2026-09-05 (r7): more dead ends confirmed
+- r7_struct (multi-unit / all-kv CTA restructures): struct_v1_akv/asp ALL PASS but SLOWER
+  (1510/1523 vs baseline 1455). More units per CTA doesn't help.
+- r7_bw DRAM ceiling probes: even CONTIGUOUS streaming reads need massive parallelism to
+  approach peak; the kernel's batch1 kv-sliced pattern is fundamentally ~0.7 TB/s capped.
+- c11ns11 (case11 ns 22->11): OJ NEGATIVE, case11 187->194us WORSE. REVERTED. ns=22 correct.
+- => ov_safe (67.07) CONFIRMED as the robust best. All structural levers exhausted:
+  occupancy (smem wall), async bsm (broken), multi-kv/multi-unit CTA (slower), register/
+  smem pipeline (spill/occupancy), split tuning (optimal or OJ-noise).
