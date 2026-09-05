@@ -1,10 +1,12 @@
 # MX FlashAttention Paged GQA Decode Kernel — 项目导航
 
 ## 📌 新 session 必读（按顺序）
-1. **`OPTIMIZATION_LOG.md`** ← 完整优化日志：时间线/版本/分数/技术细节/决策/教训
-2. **`task.md`** ← OJ 赛题描述（接口、case 表、评测）
-3. **`CONTEXT.md`** ← 当前处境、约束、开放问题（每步更新）
-4. **`DECISIONS.md`** ← 决策日志（含负结果，防重复踩坑）
+1. **`DETAILED_POST_MORTEM.md`** ← 详细复盘：两阶段全程逐轮决策(A: 教学skill多代agent 62→65 / B: 有GPU闭环 65→67.36)
+2. **`OPTIMIZATION_LOG.md`** ← 精炼优化日志：版本/分数/技术要点/教训
+3. **`POST_MORTEM.md`** ← 可复用经验 + checklist
+4. **`task.md`** ← OJ 赛题描述（接口、case 表、评测）
+5. **`CONTEXT.md`** ← 当前处境、约束、开放问题（每步更新）
+6. **`DECISIONS.md`** ← 决策日志（含负结果，防重复踩坑）
 
 ## 提交物
 | 文件 | 分数(OJ) | 说明 |
