@@ -128,3 +128,15 @@ CONTEXT/DECISIONS/SKILL immediately (they drifted out of sync).
   unit CTA (slower), full-page smem (occupancy), split tuning (optimal or OJ-noise).
 - The 67.07 kernel is at the practical architecture limit. First place 72.71 likely uses a
   different data layout or algorithm not reachable via incremental changes on this design.
+
+## 2026-09-05 FINAL honest assessment
+- No new score: 67.07 (ov_safe/clean) stands. Exhaustive structural attempts ALL dead-end:
+  scalar-FMA (35x slower), 2-kv-MMA (3.4x slower, occupancy 7->3), multi-kv/full-page
+  (occupancy), async bsm (broken), single-union-buffer (pad conflict K132 vs V136),
+  8-CTAs/SM (needs nopad -> -35% bank conflict). 7 CTAs/SM is a hard smem wall.
+- Contiguous-read DRAM prize (1.5 vs 0.7 TB/s) confirmed REAL but structurally unreachable
+  on this smem-bound MMA design + mxcc toolchain.
+- The reference (72.71) needs a fundamentally different formulation not reachable via
+  incremental/structural changes tested here. Realistic ceiling ~67-68 for this approach.
+- Next real options: (a) genuinely different algorithm/dataflow from scratch, (b) accept
+  67.07 and polish, (c) wait for colleague's SOTA or hardware/toolchain change.
