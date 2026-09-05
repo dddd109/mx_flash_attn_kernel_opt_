@@ -54,6 +54,38 @@
   bubble 最多 3.4%, 且是 launch 层非 kernel 层)。
 - 服务器剩约 1.5 天。目标: 打破 case13 1.36 / case14 1.05 eff TB/s 的局部最优。
 
+## ⚡ 关键发现 (2026-09-05 晚, 主 session, 决定性 NEGATIVE — 2-page 预取方向正式关闭)
+> 这几条纠正了历史笔记里的**错误结论**, 是当前最硬的事实, 勿重推:
+
+1. **寄存器可观测/可控制手段找到了**: `mxcc ... -resource-usage` 打印真实占用
+   (clean kernel: **150 MTregisters + 52 STregisters**, 0B stack);
+   `-maxrregcount=N` **真实生效**(150→130 无 spill, →128 12B stack, →96 148B stack)。
+   而 `__launch_bounds__(64,8)` 的第二参数在 Maca 上**被静默忽略**
+   (warning "set minimum blocks' number is illegal ... will be ignored") —
+   它从未真正限制过寄存器。**因此历史 "occupancy 从不是杠杆 / lb8 中性" 的结论是无效的**
+   (测的是空操作), 现在才有真正手段测它。
+2. **寄存器上限是硬 MLP 壁, 不是 occupancy 杠杆**: A/B case13/14 (interleaved):
+   - clean (150 regs): case13 175-176us / case14 118us (SUM 294)
+   - `-maxrregcount=146` (真降到130 regs, 0B stack): **285/251us (SUM 536, +82%)**
+   - `-maxrregcount=128`: 285/253us (同上)
+   => 砍寄存器序列化了 in-flight 页加载 (编译器用 ~150 regs 当 load-MLP 槽)。
+   增加 CTA 数带来的 occupancy 收益被逐页 load 串行化吞掉还倒亏。
+   **150 regs 是这台机器/这个 load-pacing 结构的最优, 不是天花板缺陷。**
+3. **2-page 寄存器预取 (SESSION_STATE 之前唯一剩余方向) 由此机械性关闭**:
+   它需要 +16~24 regs, 但 152 墙内没有空闲寄存器; 强行压回 128 让路 = 上面的 +82% 灾难。
+   曾经的 "spill 即弃" 假设被证明: 任何 reg 增减都 ≤ 现状。**不要在寄存器预取上再花时间。**
+4. **case14 低 ns 无剩余**: case14_lowns (exp/, 未写入 NOTES) ns50-100 中 100 最佳
+   (0.72→1.05 TB/s 单调, ns=100 = knee, 已 shipped)。无未收割 win。
+
+## 主 session 结论 (2026-09-05 晚, 决定后)
+- **正式停止所有结构/寄存器方向的尝试**。2-page prefetch、occupancy、smem squeeze、
+  lb8 全已机械/实证关闭。case13/14 的 load-pacing + 150-reg 结构就是本设计的天花板。
+- 唯一还未正式关闭的角落 (低价值): spec_policy 的 combine 串行 bubble (≤3.4%, launch 层)。
+- **提交物规范已复核**: build/clean.so = 67.36 等价物, verify_real.py ALL-14 PASS,
+  bench_all case13 175 / case14 118 (与历史一致)。shippable 状态无变化。
+- 剩余服务器时间应投入: (a) 若有同事新 SOTA 则 diff 学习; (b) 微调 ns policy 用 OJ 真值;
+  (c) 归档清理。若无新输入, 67.36 即终局。
+
 ## 协作注意
 - GPU 共享, interleaved A/B 必须。机器状态波动大(绝对 TB/s 跨分钟不可比)。
 - 提交物规范: verify_real.py 全过(edge 1-3 match 1.0) + bench_all.py SUM。

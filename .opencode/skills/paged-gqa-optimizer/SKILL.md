@@ -375,3 +375,19 @@ STILL UNEXPLORED (the real frontier):
   6. 文件-分数映射显式记录; 并行 agent ≤2; 原生 SSH 防崩。
 - 有效改进 (从 62.21→67.36): V 转置消除 / nomax softmax / pid预取+syncwarp+64bitLDS+cvt_pk /
   combine 向量化 / case14 ns100 / split regime 化。
+
+## TOOLCHAIN FACTS (2026-09-05, Maca mxcc 1.0.0 / d9102a1572, xcore1000)
+- Register observability: `mxcc ... -resource-usage` prints per-kernel
+  "Used N MTregisters, M STregisters, K bytes shared mem, staticMaxWarps/PEU".
+  ALWAYS use this before any register-precision experiment.
+- Register control: `-maxrregcount=N` REAL and effective (verified: 150->130 no spill,
+  ->128 12B stack, ->96 148B stack). `__launch_bounds__`'s 2nd (min-blocks) argument is
+  SILENTLY IGNORED on Maca ("set minimum blocks' number is illegal ... will be ignored")
+  => any prior result attributed to it is a NO-OP artifact. Do not use it to cap regs.
+- **150 MTregs is the OPTIMUM for the page-sweep load pacing, not a ceiling defect.**
+  Forcing fewer regs serializes in-flight page loads: case13 175->285us, case14
+  118->251us at -maxrregcount=146 (0B spill!). Occupancy gains from extra CTAs are
+  swamped. Never cap registers hoping for more CTAs on this design.
+- 2-page register prefetch (P+1 LDG into regs under P's PV) is MECHANICALLY CLOSED:
+  it needs +16-24 regs; none free under the ~152 spill wall; making room (cap) costs
+  +82%. smem double-buffer drops occupancy. Do not re-attempt.
