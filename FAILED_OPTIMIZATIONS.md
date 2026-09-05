@@ -196,3 +196,17 @@ All optimization attempts below **FAILED** to improve performance. The baseline 
 CONCLUSION (final): 67.07 is the practical ceiling of this design+toolchain. The reference
 72.71 needs a fundamentally different approach. Every structural family is now tested:
 occupancy, async, pipeline, multi-kv, big-CTA, warp-spec, grid-sync, contiguous-read, scalar.
+
+## 2026-09-05: MetaX FMA-decode port = correct but 5x slower (6986 vs 1460us)
+- Studied MetaX's own mcflashinfer SingleDecodeWithKVCacheKernel: uses CUDA-core FMA
+  (fma_f32x2, vec_size=8, bdx=16 threads spanning head dim, shuffle-tree reduce) NOT the
+  16x16 MMA. Ported this structure to our paged case. ALL 14 PASS but 5x slower than our
+  MMA kernel (case13 771 vs 174us). My FMA port is compute/issue-bound (0.3 TB/s), not
+  memory-bound; MetaX's hand-tuned version with their vec_t infra would be needed to match.
+- Also re-tested bsm async with the EXACT production pattern (predicator intrinsic):
+  blocked on the MACA_ICMP enum not being exposed; inconclusive. MetaX's own cp_async is
+  DISABLED (FLASHINFER_CP_ASYNC_ENABLED commented) -> they use sync copies -> consistent
+  with bsm being unreliable on mxcc.
+- CONCLUSION stays: submission_ov_safe/clean = 67.07 is the practical ceiling. The reference
+  72.71 uses a level of hand-tuning (their full FMA/vec infrastructure or a paged variant we
+  don't have) not reproducible in remaining time.
