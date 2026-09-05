@@ -140,3 +140,12 @@ CONTEXT/DECISIONS/SKILL immediately (they drifted out of sync).
   incremental/structural changes tested here. Realistic ceiling ~67-68 for this approach.
 - Next real options: (a) genuinely different algorithm/dataflow from scratch, (b) accept
   67.07 and polish, (c) wait for colleague's SOTA or hardware/toolchain change.
+
+## 2026-09-05 赛后策略 (长期有效, 所有 session 遵守)
+- 比赛结束但仍继续优化 (最终 67.36, 目标追 72.71 或更高)。
+- **不再 fresh-per-round**: 之前为教学复现验证, 每轮新 agent + 隔离 + 限上下文。
+  现在只为性能, 改为 **专职 agent + session 复用 (task_id 续跑)** → agent 累积该方向的
+  上下文与特化, 更高效率。主 session 协调/仲裁/A-B/合并。
+- 专职分工建议: 一个 agent 长期攻"大 case 读/带宽", 一个攻"kernel 微结构/指令", 
+  一个攻"policy/调度", 主 session 负责 verify + OJ 提交物。
+- 记录在 DECISIONS.md。
