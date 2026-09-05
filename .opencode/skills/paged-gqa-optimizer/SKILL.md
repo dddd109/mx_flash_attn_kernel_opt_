@@ -340,3 +340,27 @@ Priority improvement directions (in order):
   C. Restructure so the SAME page read feeds gqa head-groups via registers not smem
      (avoid the smem staging entirely for batch1 -> read once, keep in regs across the
      gqa heads that share it).
+
+## ROUND-10 FINAL (2026-09-05) - what coordinator CONFIRMED dead, what's left
+DEAD (do NOT repeat, all measured):
+- scalar-FMA contiguous kernel: correct but 35x slower (MMA essential).
+- 2-kv-per-CTA MMA: correct but 3.4x slower (smem 17KB -> 3 CTAs/SM).
+- single K/V union buffer: K pad(132) vs V pad(136) bank-conflict, cannot share.
+- 8 CTAs/SM via pad-drop: -35% bank conflict. 7 CTAs/SM = smem wall (8576B).
+- async bsm: broken. multi-kv/full-page smem: occupancy death. pipelines: reg wall.
+- kv-sliced read 0.37TB/s vs contiguous 1.5TB/s: real prize but unreachable in this design.
+- ns policy / split tuning: optimal. c11ns11 OJ test negative.
+CONFIRMED STATE: 67.07 (submission_ov_safe/clean). Current best. 14/14 correct.
+STILL UNEXPLORED (the real frontier):
+- Fundamentally different MMA dataflow: e.g., process the KV sweep as a big GEMM where the
+  page's 16 tokens x 128 dims x nkv forms ONE operand tile and 32 q heads the other, avoiding
+  per-kv smem staging. Reuse of q across the whole sweep.
+- 2-heads-in-16-rows was impossible; but "16 rows = 16 tokens of DIFFERENT kv-groups sharing
+  q"? q is per-head, tokens per kv. Consider batch=8 case12: 8 batches share NOTHING. 
+- Warp-specialization: dedicate 1 warp to loading (issuing all loads) + others compute, 
+  overlapping load and MMA without extra smem (registers/async via __pipeline? no bsm).
+- The 0.7->1.5 TB/s contiguous prize via: cooperative-groups grid sync to share a page read
+  across the 8 kv CTAs (grid.sync every page - expensive but test).
+- Try MUCH larger blocks (512 threads = 8 warps) so a block owns a whole page-range for all kv
+  and reads it with 8 warps in parallel (smem 32KB but 512 threads -> 1 CTA/SM = 512 threads vs
+  current 8*64=512... same threads, fewer CTAs, but 8 warps can issue 8 independent page-reads).
