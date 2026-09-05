@@ -106,3 +106,13 @@ CONTEXT/DECISIONS/SKILL immediately (they drifted out of sync).
 - What's left to try (no async): (1) reduce combine/partial overhead at high ns, (2) better
   ns/tps per-case using OJ ground-truth tk (not local), (3) 2-page-per-CTA to halve launches,
   (4) revisit whether ANY case's OJ tk has an exploitable distribution quirk.
+
+## Leftover files for cleanup (per engineering-habits, ask user before deleting)
+- /tmp/agent_ws/ (18M): subagent experiment workspaces from rounds r1-r6. Many contain
+  partial/failed experiments + valid deliverables (ov_v1, micro_v1, alt_v1, occ_v2 etc).
+  The valid ones are already harvested into the repo (submission_ov.cu lineage). Safe to
+  delete after confirming no unharvested win remains (r6_occ had no ship).
+- /tmp/*.cu, /tmp/*.so: probe/experiment kernels from async-bsm deep-dive + ns sweeps.
+  Safe to delete.
+- Repo build/*.so are gitignored build artifacts (nomax/ov_safe/c11ns11/orig62) - keep
+  for local A/B but not committed.
