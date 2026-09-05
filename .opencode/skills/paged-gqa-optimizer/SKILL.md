@@ -364,3 +364,14 @@ STILL UNEXPLORED (the real frontier):
 - Try MUCH larger blocks (512 threads = 8 warps) so a block owns a whole page-range for all kv
   and reads it with 8 warps in parallel (smem 32KB but 512 threads -> 1 CTA/SM = 512 threads vs
   current 8*64=512... same threads, fewer CTAs, but 8 warps can issue 8 independent page-reads).
+
+## FINAL POST-MORTEM (2026-09-05, 比赛结束, 结果 67.36 / 第一 72.71)
+- 完整复盘在 POST_MORTEM.md。核心可迁移教训:
+  1. load-preserving 探针 (删 consumer 会 DCE 掉 load → 误判 compute-bound)。
+  2. 先精确测 baseline 带宽位置再谈优化 (我们一度以为 0.7TB/s, 实为 1.38=76% ceiling)。
+  3. ns 微调 = 噪声级 (本地 randn ≠ OJ 分布; 67.36 vs 67.21 分差在 case7/9 run 噪声)。
+  4. occupancy 是硬墙 (smem 8576B → 7 CTA/SM); 一切提 MLP 的路都输给 occupancy/同步。
+  5. async bsm 在 mxcc 损坏; FMA 慢于 MMA 5x; 该架构 + 工具链下 MMA+smem 是正解。
+  6. 文件-分数映射显式记录; 并行 agent ≤2; 原生 SSH 防崩。
+- 有效改进 (从 62.21→67.36): V 转置消除 / nomax softmax / pid预取+syncwarp+64bitLDS+cvt_pk /
+  combine 向量化 / case14 ns100 / split regime 化。
