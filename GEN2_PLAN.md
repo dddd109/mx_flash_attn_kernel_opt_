@@ -111,3 +111,10 @@ D. 若 OJ 显示某 case 分布敏感(像之前 case11), 针对性调 tps/ns。
 - => batch1 cases (10/13/14) are at the structural floor of the kv-sliced design.
 - The reference (~72) must either share loads across kv-CTAs (grid-sync/cooperative, untried)
   or have a different data layout. Not locally crackable with current approach.
+
+## case14 ns=100 experiment rationale (2026-09-05)
+- local: rand ns100(120)<ns148(124); full ns100(119)<ns148(124); HALF ns148(84)<ns100(100).
+- => ns optimum is distribution-dependent. OJ case14 tk=120us (ns148) matches local-rand ns100.
+  If OJ dist ~ rand/full (long-ish), ns100 could give ~116us OJ (+1-2pts). Worth the OJ A/B.
+- Keep submission_var_c14ns100.cu as the experiment. Do NOT merge into canonical (would regress
+  if OJ dist is half-like).
