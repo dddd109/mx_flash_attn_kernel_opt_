@@ -324,3 +324,19 @@ Priority improvement directions (in order):
   (b) 32-thread CTAs, (c) move some data out of smem.
 - ALL earlier dead ends still hold: full smem double-buffer (occupancy cliff), register
   prefetch (spill ~152), load-batching (spill), multi-kv row-fill (B-tile shared).
+
+## ROUND-8 (2026-09-05): time is short, need BIG structural ideas
+- Confirmed best 67.07 (ov_safe). ALL incremental levers exhausted. Score model: need cases
+  4-14 at ~1.2x for 72.7. Every big case runs ~0.75TB/s (uniform) - suspected global limiter.
+- c11ns11 (case11 ns change) NEGATIVE on OJ (187->194us) - local ns predictions MISLEADING.
+- Remaining big-rewrite directions NOT yet fully tried:
+  A. Completely different MMA tiling: process 2 pages (32 tokens) per QK so the 16 MMA rows =
+     16 heads across the FULL kv-group... (was "impossible" due to B-tile but re-examine for
+     kv4 gqa=8: 8 heads real of 16 - could 2 kv-groups share via k-dim? k=128 is fixed.)
+  B. Non-MMA path for batch1 (only 4-8 heads): scalar/FMA QK+PV with the MMA pipe idle -
+     r6_lat proved compute is FREE (8%), so using CUDA cores for the low-gqa cases avoids
+     the 16-row MMA shape entirely. Worth RE-testing: a pure-FMA kernel for batch1 that
+     reads contiguously (no 16x16 tile constraint) might beat 0.75TB/s.
+  C. Restructure so the SAME page read feeds gqa head-groups via registers not smem
+     (avoid the smem staging entirely for batch1 -> read once, keep in regs across the
+     gqa heads that share it).
