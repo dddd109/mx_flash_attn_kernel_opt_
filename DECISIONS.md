@@ -149,3 +149,10 @@ smaller smem, (c) accepting ~390us MMA and overlapping the 38us memory perfectly
 - 所有 ns 实验全部收敛: 要么最优, 要么噪声级无差异. ns 不是提分杠杆.
 - 最终: submission_clean.cu = 67.36 (case13 ns90 / case14 ns100 + combine向量化). 
   真实最佳. 结构性提升需新洞察(未找到).
+
+## 2026-09-05 (赛后, 策略转变 - 重要, 长期有效)
+- 比赛虽结束但继续优化。**不再需要"每轮 fresh agent 模拟复现"**(那曾是教学验证目的)。
+- 新策略: 指派专职 subagent 承担特定优化方向, **跨多轮复用同一 session** (task_id),
+  让 agent 累积上下文/特化, 提高效率与深度。主 session 做协调/仲裁/合并。
+- 每条专职 agent 的任务都要写入其可复现的交付物规范, 但 agent 本身不复位。
+- 记于 CONTEXT/skill 以便后续 session 遵守。
