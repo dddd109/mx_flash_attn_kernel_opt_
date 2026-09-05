@@ -180,3 +180,19 @@ All optimization attempts below **FAILED** to improve performance. The baseline 
 - FINAL: submission_clean.cu (== submission_ov_safe, 67.07 OJ) is the canonical best.
   submission_ov_safe.cu remains the OJ-proven reference. Honest ceiling ~67-68 without a
   fundamentally new approach.
+
+## 2026-09-05 ROUND-11: S1-S4 structural rewrites ALL FAILED (final families tested)
+- S1 GEMM-dataflow / 8-token-tile 2-pass: interrupted, only micro probes.
+- S2 warp-spec (loader+compute warps, double-buffer): CORRECT but 3092us vs 1460 baseline
+  (occupancy 17KB->3 CTA/SM + cross-warp sync overhead > overlap gain).
+- S3 big-block (256-512 thr owning all-kv page-range): CORRECT but 2188us (batch1 2.8-4x worse).
+- S4 grid-sync/L2-prime: grid.sync NOT available; global-atomic barrier + L2-prime variants
+  ALL slower (barrier drift + L2 thrash: 90 splits x 64KB >> L2). KEY CORRECTION: baseline
+  case13 = 175us = 1.38 TB/s (NOT 0.7 as my earlier flawed probe claimed); pure-stream
+  ceiling = 1.82 TB/s (133us). So case13 is at 76% of ceiling; ~24% headroom max, and the
+  gap is MLP (46K vs 213K threads) which every attempt to raise (bigger CTA, warp-spec,
+  more ns) loses more to occupancy/combine/sync than it gains.
+- S5 (policy variants/micro-opts): dispatched but environment crashed; not completed.
+CONCLUSION (final): 67.07 is the practical ceiling of this design+toolchain. The reference
+72.71 needs a fundamentally different approach. Every structural family is now tested:
+occupancy, async, pipeline, multi-kv, big-CTA, warp-spec, grid-sync, contiguous-read, scalar.
