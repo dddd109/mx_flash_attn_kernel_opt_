@@ -1,0 +1,8 @@
+# 文件 -> OJ 分数映射（防混淆）
+submission_ov_safe.cu        : case13 ns90, case14 ns148 -> 67.07 (早期) / 67.21 (最近一次, case9/10波动)
+submission_clean.cu          : case13 ns90, case14 ns100 -> 67.36 (NEW BEST, 用户提交ns100版)
+submission_var_c14ns100.cu   : = clean (case14 ns100) 冗余
+submission_var_c13ns64b.cu   : case13 ns64, case14 ns100 -> 正在OJ跑 (实验)
+submission_agentG_v2.cu      : 65.14 (历史)
+submission_nomax.cu          : 66.71 (历史)
+# 注意: clean 曾被我误标 67.21; 实际 67.21 是你提交的 148 版(ov_safe式). 67.36 = ns100 版.
