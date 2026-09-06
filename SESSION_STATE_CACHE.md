@@ -167,3 +167,18 @@
   均已被本地 fill 验证)。本地优化已收敛。
 - 若继续: 唯一未穷尽的是 case13 相对 abs-ceiling 1.55 的 ~11% 缺口 (kv-sliced 8×8KB 读
   的 DRAM 行利用), 但所有宽读/整页/多kv/async 结构已机械关闭 → 视为不可达。
+
+## 2026-09-06 续 (行/分布分析 + 重大测量教训)
+- **修正字节模型**: 真实每 case 读字节 = cache_seqlens.sum()/16 页 × nkv × 8KB。
+  修正后各 case 真实 eff rate: c7 1.23 (248MB/202us, batch64 短行碎片化),
+  c9 1.27, c11 1.17 (174MB, batch16 严重偏斜: 行 1~766 页), c12 1.41 (586MB, 最接近
+  b8-all-full 的 1.47), c13 1.38, c14 1.09 (126MB 小集+400CTA)。碎片化 cost ~10%。
+- **测量陷阱 (重要!)**: 同一进程内跨不同 tensor 配置复用 run_kernel .so, 在发生过
+  OOM/crash 后 CUDA 状态会**静默损坏**, 产生不可能的数字 (e.g. 3.34TB/s>硬件 1.55)。
+  曾误以为 "case12 行序 asc 快 2.8x" 是大发现, 实为损坏态 artifact (fresh 进程重测:
+  行序无关)。→ 任何 >1.55TB/s 或跨配置 A/B 都必须 fresh 进程重验。
+- **ns policy 全 case 复核 (hoisted kernel)**: c7 ns5, c12 ns59, c13 ns90, c14 ns100,
+  c10 ns64 全部仍最优。policy 层无变化。
+- **当前本地最优**: submission_clean.cu (hoist+kvburst+regfix, 154 regs 0B spill),
+  SUM ~1448 (vs 1460 起点, net -12us), verify ALL-14 PASS。已提交 1f3ce74 + push。
+- 结构结论维持: 碎片化/短行是 flash-decode 可变长度本质, 无干净结构解。
