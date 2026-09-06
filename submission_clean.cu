@@ -152,6 +152,9 @@ __global__ void paged_gqa_mma_kernel(
         for (int i = 0; i < 4; i++) {
             uint4 kv4 = *(const uint4*)(kbase + kgoff[i]);
             *(uint4*)&Kb[tok_[i]][dim_[i]] = kv4;
+        }
+        #pragma unroll
+        for (int i = 0; i < 4; i++) {
             uint4 v4 = *(const uint4*)(vbase + vgoff[i]);
             *(uint4*)&Vb[tok_[i]][dim_[i]] = v4;    // one vectorized store, no transpose
         }
