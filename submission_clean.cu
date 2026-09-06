@@ -312,8 +312,8 @@ __global__ void combine_kernel(
     int num_heads, int num_heads_k, int n_splits, int gqa,
     int tokens_per_split)
 {
-    __shared__ float sl[4];
-    __shared__ float sA[4][128];
+    __shared__ float sl[8];
+    __shared__ float sA[8][128];
 
     const int b = blockIdx.x;
     const int unit_head = blockIdx.y;
@@ -326,16 +326,16 @@ __global__ void combine_kernel(
     int nsplit_eff = (seqlen + tokens_per_split - 1) / tokens_per_split;
     if (nsplit_eff > n_splits) nsplit_eff = n_splits;
 
-    const int q = tid >> 5;                      // 0..3 split-quad
+    const int q = tid >> 5;                      // 0..7 split-oct
     const int d4 = tid & 31;                     // dim chunk
     const int dim0 = d4 * 4;
 
     float lq = 0.f;
-    for (int s = q; s < nsplit_eff; s += 4)
+    for (int s = q; s < nsplit_eff; s += 8)
         lq += l_part[(base + s) * gqa + hh];
 
     float4 A = make_float4(0.f, 0.f, 0.f, 0.f);
-    for (int s = q; s < nsplit_eff; s += 4) {
+    for (int s = q; s < nsplit_eff; s += 8) {
         const float4 a = *(const float4*)&acc_part[((base + s) * gqa + hh) * HEAD + dim0];
         A.x += a.x; A.y += a.y; A.z += a.z; A.w += a.w;
     }
@@ -346,16 +346,13 @@ __global__ void combine_kernel(
     __syncthreads();
 
     if (q == 0) {
-        float l = sl[0] + sl[1] + sl[2] + sl[3];
-        const float4* src0 = (const float4*)&sA[0][dim0];
-        const float4* src1 = (const float4*)&sA[1][dim0];
-        const float4* src2 = (const float4*)&sA[2][dim0];
-        const float4* src3 = (const float4*)&sA[3][dim0];
-        float4 T;
-        T.x = (src0->x + src1->x) + (src2->x + src3->x);
-        T.y = (src0->y + src1->y) + (src2->y + src3->y);
-        T.z = (src0->z + src1->z) + (src2->z + src3->z);
-        T.w = (src0->w + src1->w) + (src2->w + src3->w);
+        float l = ((sl[0]+sl[1])+(sl[2]+sl[3])) + ((sl[4]+sl[5])+(sl[6]+sl[7]));
+        float4 T = make_float4(0,0,0,0);
+        #pragma unroll
+        for (int qq = 0; qq < 8; qq++) {
+            const float4* sp = (const float4*)&sA[qq][dim0];
+            T.x += sp->x; T.y += sp->y; T.z += sp->z; T.w += sp->w;
+        }
         float inv = 1.0f / l;
         __nv_bfloat16* op = output + (b * num_heads + kv * gqa + hh) * HEAD;
         *(uint64_t*)&op[dim0] = pack4(T.x * inv, T.y * inv, T.z * inv, T.w * inv);
@@ -501,7 +498,7 @@ extern "C" void run_kernel(
         tokens_per_split, (batch_size == 1));
 
     dim3 grid2((unsigned)batch_size, (unsigned)(num_heads_k * gqa));
-    combine_kernel<<<grid2, 128>>>(
+    combine_kernel<<<grid2, 256>>>(
         l_part, acc_part, cache_seqlens, output,
         (int)num_heads, (int)num_heads_k, ns, gqa, tokens_per_split);
 }
