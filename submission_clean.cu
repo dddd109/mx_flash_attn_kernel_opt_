@@ -126,6 +126,22 @@ __global__ void paged_gqa_mma_kernel(
 
     using VectorType = __NATIVE_VECTOR__(2, uint32_t);
 
+    /* Per-thread page-load geometry (which of the 16 tokens x 128 dims this lane
+     * fetches in each of the 4 sub-rounds) depends only on lane, so the affine
+     * K/V global offsets and smem destinations are hoisted out of the page loop. */
+    int tok_[4], dim_[4], kgoff[4], vgoff[4], ksoff[4], vsoff[4];
+    #pragma unroll
+    for (int i = 0; i < 4; i++) {
+        int u = lane + i * 64;
+        int tok = u >> 4;
+        int dim = (u & 15) * 8;
+        tok_[i] = tok; dim_[i] = dim;
+        kgoff[i] = tok * KVSTR + dim;
+        vgoff[i] = tok * KVSTR + dim;
+        ksoff[i] = tok * KSTRIDE + dim;
+        vsoff[i] = tok * VSTRIDE + dim;
+    }
+
     int cur_pid = block_table[b * blocks_per_batch + pg0];
     /* Stage one 16-token page's K+V (this unit's kv slice) into smem.
      * pid is pre-fetched so the next page's load address is ready early. */
@@ -134,13 +150,10 @@ __global__ void paged_gqa_mma_kernel(
         const __nv_bfloat16* vbase = v_cache_paged + ((int64_t)pid * PAGE) * KVSTR + kv * HEAD;
         #pragma unroll
         for (int i = 0; i < 4; i++) {
-            int u = lane + i * 64;
-            int tok = u >> 4;
-            int dim = (u & 15) * 8;
-            uint4 kv4 = *(const uint4*)(kbase + tok * KVSTR + dim);
-            *(uint4*)&Kb[tok][dim] = kv4;
-            uint4 v4 = *(const uint4*)(vbase + tok * KVSTR + dim);
-            *(uint4*)&Vb[tok][dim] = v4;    // one vectorized store, no transpose
+            uint4 kv4 = *(const uint4*)(kbase + kgoff[i]);
+            *(uint4*)&Kb[tok_[i]][dim_[i]] = kv4;
+            uint4 v4 = *(const uint4*)(vbase + vgoff[i]);
+            *(uint4*)&Vb[tok_[i]][dim_[i]] = v4;    // one vectorized store, no transpose
         }
     };
 
