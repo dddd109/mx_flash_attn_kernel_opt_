@@ -300,10 +300,10 @@ __global__ void paged_gqa_mma_kernel(
 }
 
 /* Combine kernel: sums the (l, D) partials of all splits of a unit.
- * Because the softmax is in the absolute domain (E5c), partials add directly.
- * One block per (unit, head): 32 threads reduce that head's 128 dims over the
- * unit's splits (each thread a float4 = 4 dims), so ~nkv*gqa*batch blocks keep
- * the whole GPU busy even for batch==1 cases with many splits. */
+ * Absolute-domain softmax (E5c) so partials add directly.
+ * Grid (batch, nkv*gqa), 128 threads/block. Each block reduces one (unit,head)'s
+ * 128 dims over that unit's splits. Threads split the split-range 4 ways for
+ * load-level parallelism, then a smem tree folds the 4 quad-partials. */
 __global__ void combine_kernel(
     const float* __restrict__ l_part,
     const float* __restrict__ acc_part,
@@ -312,33 +312,57 @@ __global__ void combine_kernel(
     int num_heads, int num_heads_k, int n_splits, int gqa,
     int tokens_per_split)
 {
+    __shared__ float sl[4];
+    __shared__ float sA[4][128];
+
     const int b = blockIdx.x;
     const int unit_head = blockIdx.y;
     const int kv = unit_head / gqa;
     const int hh = unit_head % gqa;
-    const int tid = threadIdx.x;
+    const int tid = threadIdx.x;                 // 0..127
     const int unit = b * num_heads_k + kv;
     const int base = unit * n_splits;
     const int seqlen = cache_seqlens[b];
     int nsplit_eff = (seqlen + tokens_per_split - 1) / tokens_per_split;
     if (nsplit_eff > n_splits) nsplit_eff = n_splits;
 
-    float l = 0.f;
-    for (int s = 0; s < nsplit_eff; s++)
-        l += l_part[(base + s) * gqa + hh];
+    const int q = tid >> 5;                      // 0..3 split-quad
+    const int d4 = tid & 31;                     // dim chunk
+    const int dim0 = d4 * 4;
+
+    float lq = 0.f;
+    for (int s = q; s < nsplit_eff; s += 4)
+        lq += l_part[(base + s) * gqa + hh];
 
     float4 A = make_float4(0.f, 0.f, 0.f, 0.f);
-    const int dim4 = tid * 4;
-    for (int s = 0; s < nsplit_eff; s++) {
-        const float4 a = *(const float4*)&acc_part[((base + s) * gqa + hh) * HEAD + dim4];
+    for (int s = q; s < nsplit_eff; s += 4) {
+        const float4 a = *(const float4*)&acc_part[((base + s) * gqa + hh) * HEAD + dim0];
         A.x += a.x; A.y += a.y; A.z += a.z; A.w += a.w;
     }
-    float inv = 1.0f / l;
-    __nv_bfloat16* op = output + (b * num_heads + kv * gqa + hh) * HEAD;
-    *(uint64_t*)&op[dim4] = pack4(A.x * inv, A.y * inv, A.z * inv, A.w * inv);
+    /* quad partials to smem */
+    if (d4 == 0) sl[q] = lq;
+    float4* dst = (float4*)&sA[q][dim0];
+    *dst = A;
+    __syncthreads();
+
+    if (q == 0) {
+        float l = sl[0] + sl[1] + sl[2] + sl[3];
+        const float4* src0 = (const float4*)&sA[0][dim0];
+        const float4* src1 = (const float4*)&sA[1][dim0];
+        const float4* src2 = (const float4*)&sA[2][dim0];
+        const float4* src3 = (const float4*)&sA[3][dim0];
+        float4 T;
+        T.x = (src0->x + src1->x) + (src2->x + src3->x);
+        T.y = (src0->y + src1->y) + (src2->y + src3->y);
+        T.z = (src0->z + src1->z) + (src2->z + src3->z);
+        T.w = (src0->w + src1->w) + (src2->w + src3->w);
+        float inv = 1.0f / l;
+        __nv_bfloat16* op = output + (b * num_heads + kv * gqa + hh) * HEAD;
+        *(uint64_t*)&op[dim0] = pack4(T.x * inv, T.y * inv, T.z * inv, T.w * inv);
+    }
 }
 
-/* ------/* ---------------------------------------------------------------------------
+/* ------/* ------/* ---------------------------------------------------------------------------
  * Split-count policy.
  *
  * The kernel is DRAM-load-latency bound on long sweeps: per-CTA the exposed
@@ -477,7 +501,7 @@ extern "C" void run_kernel(
         tokens_per_split, (batch_size == 1));
 
     dim3 grid2((unsigned)batch_size, (unsigned)(num_heads_k * gqa));
-    combine_kernel<<<grid2, 32>>>(
+    combine_kernel<<<grid2, 128>>>(
         l_part, acc_part, cache_seqlens, output,
         (int)num_heads, (int)num_heads_k, ns, gqa, tokens_per_split);
 }
