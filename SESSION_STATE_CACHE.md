@@ -150,3 +150,20 @@
 - GPU 共享, interleaved A/B 必须。机器状态波动大(绝对 TB/s 跨分钟不可比)。
 - 提交物规范: verify_real.py 全过(edge 1-3 match 1.0) + bench_all.py SUM。
 - 每轮结束把进展 append 回此文件 + 各自 NOTES。
+
+## 2026-09-06 (OJ 已不可跑 → 本地 SUM 为唯一目标)
+- **本地基线 SUM 变化**: 1460.4 (clean, 2026-09-05) → **~1447-1451** (本轮), net -10~-13us。
+- **三个已合并的小 win (全部 verify ALL-14 PASS + 交错 A/B 验证, 154 regs 0B spill)**:
+  1. hoist (1240e3a): 把 stage_page 每页重算的 4 轮 lane 几何 (tok/dim/affine 偏移) 提出
+     页循环 → SUM -7.4us。机理: 减每页 LDG issue 指令, 对 CTA-starved kv4 (case14/11)
+     最有效 (case14 -1.6%, case11 -1.5%), kv8 (case13/12) 中性。
+  2. kvburst (20118c2): stage 先发完 4 个 K load 再发 4 个 V load (同数组连续突发) →
+     SUM -5.3us (case14 -0.45%, case11 -0.52%)。
+  3. regfix (1f3ce74): 循环内联重算 tok/dim 而非存数组 → 再 -3us (各 case -0.2~-0.6%)。
+- 已测中性丢弃: basepf (预取下一页 base 指针, 编译器本已提前算好, ±0.3% 噪声)。
+- **ns policy 全部重新确认最优** (在 hoisted kernel 上: case10 ns64, case14 ns100,
+  case12 ns59, case13 ns90) — policy 层无变化。
+- 结构结论不变: kernel 读侧在架构天花板 (case13 1.38 已超任何纯读; 每 case 的 ns knee
+  均已被本地 fill 验证)。本地优化已收敛。
+- 若继续: 唯一未穷尽的是 case13 相对 abs-ceiling 1.55 的 ~11% 缺口 (kv-sliced 8×8KB 读
+  的 DRAM 行利用), 但所有宽读/整页/多kv/async 结构已机械关闭 → 视为不可达。
