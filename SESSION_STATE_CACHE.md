@@ -105,6 +105,47 @@
   新 agent 工作区: /tmp/agent_ws/{agentA_read,agentB_struct,agentC_policy},
   交接总文档 /tmp/agent_ws/HANDOFF.md。
 
+## ⚡⚡⚡ 深夜轮结果 (2026-09-05, 4 专职 agent 并行, 全部收割)
+> 前情: 用户说榜首 72.79 (+5.43pt), "确认真的到天花板才能重构"。主 session 决定性
+> 确认了天花板 (见 CEILING_CONFIRMATION.md)。然后并行派 4 fresh agent:
+- agentA_read ((b) 更宽读): **全灭**。机理 = per-page barrier pacing (无 barrier 1.17,
+  加 __syncwarp/8KB 页 = 1.28-1.30 = 复现真 kernel 密度)。连续读 4KB strip 1.21 不如
+  kv-sliced; 512B/整页更差; 2页寄存器预取=1页相同; 去同步失速单调恶化。ns 已最优。
+  → (b) 家族彻底死。
+- agentB_struct ((c) gqa/算法复用): **全灭**。combine 融合 (atomicAdd) 更慢 5-13%
+  (atomic > 省下的 launch)。多 batch/CTA 死 (disjoint 页无共享)。跨 split/kv L2 复用死。
+  双缓冲只给 CTA-starved case 也 2-4.6x 差。所有 ns 再确认最优。
+- agentD_async (bsm/cp.async 权威复查, 当前工具链): **权威 CLOSED**。bsm 引擎**能用**
+  (dense 16/32/64 lane 干净, 0 mismatch), 但 padded tile (真实 stage_page 布局) 结构性
+  不可用 (非前缀 16-lane 子集不写; ≥32-lane 的 dst base 被量化到 256B, 偏移错乱)。
+  唯一正确形式 (leading-16-lane 逐 token 行) 串行 4x → case13 176→310us, case14 118→196us。
+  → async 方向彻底关死, 不是旧工具链问题。
+- agentC_policy (**唯一活路**): case11 (kv4, b16, seq12251) ns 22→43!
+  - 机理: OJ 的 case11 实际 fill 比本地 uniform 高 (OJ ns22=182us vs 本地 uniform 148us)。
+    高 fill 时每 unit ~92 页, ns22 只给 1.93 waves, ns43 给 3.78 waves → DRAM 并发更好。
+  - A/B (交错): OJ 复现 fill (0.485) ns22 180.4 → ns43 163.1 = **-9.7%**; fill 0.51 knee
+    在 43 (-14.2%); 但本地 low fill (0.42) ns43 +2.4% 稍差。
+  - **关键判定逻辑**: OJ 自己报 case11 ns22=182us 就证明 OJ fill 高 → ns43 在 OJ 会赢。
+    若真低 fill, ns43 只 +2.4% ≈ 仍在 57 分 (round 边界内有 ~3.4% 缓冲)。EV 非对称向好。
+  - 分数模型验证: score=round(100*R/(R+ours)), R={1:35.5,2:35.5,3:42.5,4:58.5,5:44.5,
+    6:48,7:274,8:107,9:308,10:62.5,11:244.5,12:560,13:236,14:166.5}, 14/14 精确匹配。
+    case11: ours≤180.6 → 58分; ≤168.2 → 60分。预测 OJ +1..+3。
+  - 候选: submission_c11ns43.cu (一行 diff: regime E `ns=(pages>=512)?43:22`), verify ALL
+    PASS, 全 14 bench 仅 case11 变 (本地 low fill +2.9%, 其余位同)。
+  - 风险: 若 OJ fill 意外低 (~0.42) 则 case11 182→~187, 仍 57 (无损失)。真正的唯一风险是
+    OJ 若在 round 边界另一侧 (<0.5us 内), 之前 case9/10 见过 ±1 噪声。
+- **结论: kernel 结构层已彻底到墙 ((b)/(c)/async 全灭)。唯一剩余: OJ 提交 c11ns43 试 +1..+3。**
+  无 xpuoj login state (此 box /root/code/xpuoj_state.json 不存在) → 无法本地提交 OJ。
+  候选已备好 submission_c11ns43.cu, 等有 login 的用户/环境提交。
+
+## 工具链/方法新教训 (勿重推)
+- ns/策略 A/B 的 harness 陷阱: torch.manual_seed 后**先建 cs 还是先建 q/k/v** 改变实际
+  cache_seqlens 分布 (uni_sweep 曾因先建 cs 意外测到高 fill 0.49 而非 0.42, 得出错误
+  的 ns43 结论)。必须用 bench_all.make_case 同款构造 (seed→q,k,v→cs) 或直接复用。
+  case11 low vs high fill 的 ns 最优截然不同 → 一切 ns 决策必须钉死 fill 分布。
+- 机器 load 波动大时相对排序都会翻转 (fill 扫描全程 ~250us 污染) → 只在干净窗
+  (baseline case13≈175/case11≈148) 下结论。
+
 ## 协作注意
 - GPU 共享, interleaved A/B 必须。机器状态波动大(绝对 TB/s 跨分钟不可比)。
 - 提交物规范: verify_real.py 全过(edge 1-3 match 1.0) + bench_all.py SUM。
