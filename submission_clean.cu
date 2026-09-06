@@ -300,7 +300,10 @@ __global__ void paged_gqa_mma_kernel(
 }
 
 /* Combine kernel: sums the (l, D) partials of all splits of a unit.
- * Because the softmax is in the absolute domain (E5c), partials add directly. */
+ * Because the softmax is in the absolute domain (E5c), partials add directly.
+ * One block per (unit, head): 32 threads reduce that head's 128 dims over the
+ * unit's splits (each thread a float4 = 4 dims), so ~nkv*gqa*batch blocks keep
+ * the whole GPU busy even for batch==1 cases with many splits. */
 __global__ void combine_kernel(
     const float* __restrict__ l_part,
     const float* __restrict__ acc_part,
@@ -310,35 +313,32 @@ __global__ void combine_kernel(
     int tokens_per_split)
 {
     const int b = blockIdx.x;
-    const int kv = blockIdx.y;
+    const int unit_head = blockIdx.y;
+    const int kv = unit_head / gqa;
+    const int hh = unit_head % gqa;
     const int tid = threadIdx.x;
-    const int hh = tid >> 5;
-    const int c4 = tid & 31;
-    const int base = (b * num_heads_k + kv) * n_splits;
+    const int unit = b * num_heads_k + kv;
+    const int base = unit * n_splits;
     const int seqlen = cache_seqlens[b];
     int nsplit_eff = (seqlen + tokens_per_split - 1) / tokens_per_split;
     if (nsplit_eff > n_splits) nsplit_eff = n_splits;
 
-    /* precompute l (same for all dims of a head) */
     float l = 0.f;
     for (int s = 0; s < nsplit_eff; s++)
         l += l_part[(base + s) * gqa + hh];
 
-    /* vectorized float4 accumulate over 4 dims per thread */
     float4 A = make_float4(0.f, 0.f, 0.f, 0.f);
-    const int dim4 = c4 * 4;
+    const int dim4 = tid * 4;
     for (int s = 0; s < nsplit_eff; s++) {
         const float4 a = *(const float4*)&acc_part[((base + s) * gqa + hh) * HEAD + dim4];
         A.x += a.x; A.y += a.y; A.z += a.z; A.w += a.w;
     }
-    if (hh < gqa) {
-        float inv = 1.0f / l;
-        __nv_bfloat16* op = output + (b * num_heads + kv * gqa + hh) * HEAD;
-        *(uint64_t*)&op[dim4] = pack4(A.x * inv, A.y * inv, A.z * inv, A.w * inv);
-    }
+    float inv = 1.0f / l;
+    __nv_bfloat16* op = output + (b * num_heads + kv * gqa + hh) * HEAD;
+    *(uint64_t*)&op[dim4] = pack4(A.x * inv, A.y * inv, A.z * inv, A.w * inv);
 }
 
-/* ---------------------------------------------------------------------------
+/* ------/* ---------------------------------------------------------------------------
  * Split-count policy.
  *
  * The kernel is DRAM-load-latency bound on long sweeps: per-CTA the exposed
@@ -476,8 +476,8 @@ extern "C" void run_kernel(
         (int)page_block_size, blocks_per_batch, ns, gqa, sm_scale,
         tokens_per_split, (batch_size == 1));
 
-    dim3 grid2((unsigned)batch_size, (unsigned)num_heads_k);
-    combine_kernel<<<grid2, (unsigned)(gqa * 32)>>>(
+    dim3 grid2((unsigned)batch_size, (unsigned)(num_heads_k * gqa));
+    combine_kernel<<<grid2, 32>>>(
         l_part, acc_part, cache_seqlens, output,
         (int)num_heads, (int)num_heads_k, ns, gqa, tokens_per_split);
 }
