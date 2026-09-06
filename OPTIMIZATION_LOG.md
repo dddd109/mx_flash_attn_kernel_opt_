@@ -98,3 +98,13 @@ page=16, kv_heads∈{4,8}, 14 cases, OJ 评测 tk/tb/speedup/score。
 - load-preserving 消融 (删 consumer 保 load) 才是正确探针法。
 - 负结果带机制 + 证据记录, 防重复踩坑。
 - OJ 为最终真值; 本地只在分布已知时可信。
+
+## 2026-09-05 深夜 (deep-night round, 4-agent parallel, leader 72.79)
+- 天花板确认 (CEILING_CONFIRMATION.md): abs DRAM 1.55TB/s; case13 1.38/case14 1.08
+  都超过所有纯读副本 → 读侧/reg/L2 全到墙。
+- (b) 更宽读 (agentA): per-page barrier pacing 是机理; 连续/更宽/深MLP/去同步全不敌。
+- (c) 算法复用 (agentB): atomic 融合 combine 更慢; 无 L2 复用; 多 batch 页不相交。
+- async bsm (agentD, 当前工具链权威): dense 可用但 padded tile 结构性不可用; 1.7x 慢。
+- **policy (agentC) 唯一活路**: case11 ns22->43。OJ fill 高 (182us 自证) → ns43 省 ~17us
+  = case11 57->58/60 (+1..+3)。低 fill 风险 ~0 (57 边界内)。score 模型 14/14 验证。
+- 候选 submission_c11ns43.cu 已备 (verify ALL-14 PASS)。无 OJ login 本机无法提交。
